@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect, useState } from "react";
@@ -6,8 +7,19 @@ import Link from "next/link";
 export default function MotorPage() {
   const [motorList, setMotorList] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [role, setRole] = useState(null);
+  const [roleLoaded, setRoleLoaded] = useState(false);
 
   useEffect(() => {
+    try {
+      const user = JSON.parse(localStorage.getItem("rettor_user") || "null");
+      setRole(user?.role || null);
+    } catch {
+      setRole(null);
+    } finally {
+      setRoleLoaded(true);
+    }
+
     ambilMotor();
   }, []);
 
@@ -17,7 +29,7 @@ export default function MotorPage() {
       const data = await response.json();
 
       if (data.success) {
-        setMotorList(data.motor);
+        setMotorList(data.motor || []);
       }
     } catch (error) {
       console.error("Gagal mengambil motor:", error);
@@ -31,8 +43,10 @@ export default function MotorPage() {
       style: "currency",
       currency: "IDR",
       maximumFractionDigits: 0,
-    }).format(angka);
+    }).format(angka || 0);
   }
+
+  const isAdmin = role === "admin";
 
   return (
     <main
@@ -54,6 +68,8 @@ export default function MotorPage() {
           position: "sticky",
           top: 0,
           zIndex: 50,
+          flexWrap: "wrap",
+          gap: "15px",
         }}
       >
         <Link
@@ -72,69 +88,27 @@ export default function MotorPage() {
         <div
           style={{
             display: "flex",
-            gap: "28px",
+            gap: "25px",
             alignItems: "center",
             flexWrap: "wrap",
-            justifyContent: "center",
           }}
         >
-          <Link
-            href="/"
-            style={{
-              color: "#374151",
-              textDecoration: "none",
-              fontWeight: "600",
-            }}
-          >
-            Beranda
-          </Link>
-
-          <Link
-            href="/motor"
-            style={{
-              color: "#0F4CDB",
-              textDecoration: "none",
-              fontWeight: "700",
-            }}
-          >
+          <Link href="/" style={linkNav}>Beranda</Link>
+          <Link href="/motor" style={{ ...linkNav, color: "#0F4CDB" }}>
             Motor
           </Link>
 
-          <Link
-            href="/pesanan"
-            style={{
-              color: "#374151",
-              textDecoration: "none",
-              fontWeight: "600",
-            }}
-          >
-            Pesanan Saya
-          </Link>
-
-          <Link
-            href="/profil"
-            style={{
-              color: "#374151",
-              textDecoration: "none",
-              fontWeight: "600",
-            }}
-          >
-            Profil
-          </Link>
-
-          <Link
-            href="/login"
-            style={{
-              background: "#0F4CDB",
-              color: "white",
-              padding: "10px 20px",
-              borderRadius: "10px",
-              textDecoration: "none",
-              fontWeight: "700",
-            }}
-          >
-            Login
-          </Link>
+          {roleLoaded && isAdmin ? (
+            <Link href="/admin" style={linkNav}>
+              Dashboard Admin
+            </Link>
+          ) : (
+            <>
+              <Link href="/pesanan" style={linkNav}>Pesanan Saya</Link>
+              <Link href="/profil" style={linkNav}>Profil</Link>
+              {!role && <Link href="/login" style={tombolLogin}>Login</Link>}
+            </>
+          )}
         </div>
       </nav>
 
@@ -229,41 +203,10 @@ export default function MotorPage() {
             gap: "20px",
           }}
         >
-          <div>
-            <strong style={{ color: "#0F4CDB", fontSize: "22px" }}>
-              {motorList.length}+
-            </strong>
-            <p style={{ margin: "4px 0", color: "#4B5563" }}>
-              Pilihan Motor
-            </p>
-          </div>
-
-          <div>
-            <strong style={{ color: "#0F4CDB", fontSize: "22px" }}>
-              Terawat
-            </strong>
-            <p style={{ margin: "4px 0", color: "#4B5563" }}>
-              Kondisi Motor
-            </p>
-          </div>
-
-          <div>
-            <strong style={{ color: "#0F4CDB", fontSize: "22px" }}>
-              Fleksibel
-            </strong>
-            <p style={{ margin: "4px 0", color: "#4B5563" }}>
-              Waktu Penyewaan
-            </p>
-          </div>
-
-          <div>
-            <strong style={{ color: "#0F4CDB", fontSize: "22px" }}>
-              Mudah
-            </strong>
-            <p style={{ margin: "4px 0", color: "#4B5563" }}>
-              Proses Pemesanan
-            </p>
-          </div>
+          <InfoBar angka={`${motorList.length}+`} teks="Pilihan Motor" />
+          <InfoBar angka="Terawat" teks="Kondisi Motor" />
+          <InfoBar angka="Fleksibel" teks="Waktu Penyewaan" />
+          <InfoBar angka="Mudah" teks="Proses Pemesanan" />
         </div>
       </section>
 
@@ -276,12 +219,7 @@ export default function MotorPage() {
           margin: "auto",
         }}
       >
-        <div
-          style={{
-            textAlign: "center",
-            marginBottom: "45px",
-          }}
-        >
+        <div style={{ textAlign: "center", marginBottom: "45px" }}>
           <p
             style={{
               color: "#0F4CDB",
@@ -301,17 +239,11 @@ export default function MotorPage() {
               color: "#111827",
             }}
           >
-            Pilih Motor Favoritmu
+            Pilihan Motor RETTOR
           </h2>
 
-          <p
-            style={{
-              color: "#4B5563",
-              fontSize: "17px",
-              margin: 0,
-            }}
-          >
-            Berbagai pilihan motor untuk menemani perjalananmu.
+          <p style={{ color: "#4B5563", fontSize: "17px", margin: 0 }}>
+            Lihat spesifikasi dan harga setiap motor.
           </p>
         </div>
 
@@ -336,18 +268,14 @@ export default function MotorPage() {
               boxShadow: "0 5px 20px rgba(0,0,0,0.06)",
             }}
           >
-            <h3 style={{ color: "#111827" }}>Belum ada motor</h3>
-
-            <p style={{ color: "#6B7280" }}>
-              Data motor belum tersedia.
-            </p>
+            <h3>Belum ada motor</h3>
+            <p style={{ color: "#6B7280" }}>Data motor belum tersedia.</p>
           </div>
         ) : (
           <div
             style={{
               display: "grid",
-              gridTemplateColumns:
-                "repeat(auto-fit, minmax(280px, 1fr))",
+              gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
               gap: "28px",
             }}
           >
@@ -362,7 +290,6 @@ export default function MotorPage() {
                   border: "1px solid #E5E7EB",
                 }}
               >
-                {/* GAMBAR MOTOR */}
                 <div
                   style={{
                     height: "240px",
@@ -387,16 +314,13 @@ export default function MotorPage() {
                         }}
                       />
                     ) : (
-                      <div style={{ fontSize: "90px" }}>
-                        {item.gambar}
-                      </div>
+                      <div style={{ fontSize: "90px" }}>{item.gambar}</div>
                     )
                   ) : (
                     <div style={{ fontSize: "90px" }}>🏍️</div>
                   )}
                 </div>
 
-                {/* DETAIL */}
                 <div style={{ padding: "24px" }}>
                   <div
                     style={{
@@ -432,12 +356,7 @@ export default function MotorPage() {
                     </span>
                   </div>
 
-                  <p
-                    style={{
-                      margin: "8px 0 18px",
-                      color: "#6B7280",
-                    }}
-                  >
+                  <p style={{ margin: "8px 0 18px", color: "#6B7280" }}>
                     Mesin {item.cc} CC
                   </p>
 
@@ -458,24 +377,14 @@ export default function MotorPage() {
                           marginBottom: "3px",
                         }}
                       >
-                        Mulai dari
+                        Harga sewa
                       </span>
 
-                      <strong
-                        style={{
-                          color: "#0F4CDB",
-                          fontSize: "20px",
-                        }}
-                      >
+                      <strong style={{ color: "#0F4CDB", fontSize: "20px" }}>
                         {formatRupiah(item.harga)}
                       </strong>
 
-                      <span
-                        style={{
-                          color: "#6B7280",
-                          fontSize: "13px",
-                        }}
-                      >
+                      <span style={{ color: "#6B7280", fontSize: "13px" }}>
                         /hari
                       </span>
                     </div>
@@ -502,168 +411,102 @@ export default function MotorPage() {
         )}
       </section>
 
-      {/* CARA SEWA */}
-      <section
-        style={{
-          background: "white",
-          padding: "75px 7%",
-        }}
-      >
-        <div
-          style={{
-            maxWidth: "1200px",
-            margin: "auto",
-          }}
-        >
-          <div
-            style={{
-              textAlign: "center",
-              marginBottom: "45px",
-            }}
-          >
-            <p
-              style={{
-                color: "#0F4CDB",
-                fontWeight: "800",
-                marginBottom: "8px",
-              }}
-            >
-              CARA PENYEWAAN
-            </p>
+      {/* BAGIAN PENYEWAAN KHUSUS PELANGGAN */}
+      {roleLoaded && !isAdmin && (
+        <>
+          <section style={{ background: "white", padding: "75px 7%" }}>
+            <div style={{ maxWidth: "1200px", margin: "auto" }}>
+              <div style={{ textAlign: "center", marginBottom: "45px" }}>
+                <p style={{ color: "#0F4CDB", fontWeight: "800" }}>
+                  CARA PENYEWAAN
+                </p>
+                <h2
+                  style={{
+                    fontSize: "38px",
+                    margin: 0,
+                    fontWeight: "900",
+                    color: "#111827",
+                  }}
+                >
+                  Sewa Motor dengan Mudah
+                </h2>
+              </div>
 
-            <h2
-              style={{
-                fontSize: "38px",
-                margin: 0,
-                fontWeight: "900",
-                color: "#111827",
-              }}
-            >
-              Sewa Motor dengan Mudah
-            </h2>
-          </div>
-
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns:
-                "repeat(auto-fit, minmax(220px, 1fr))",
-              gap: "25px",
-            }}
-          >
-            {[
-              {
-                nomor: "01",
-                judul: "Pilih Motor",
-                isi: "Pilih motor yang sesuai dengan kebutuhan perjalananmu.",
-              },
-              {
-                nomor: "02",
-                judul: "Isi Data",
-                isi: "Masukkan data penyewaan dan tanggal penggunaan motor.",
-              },
-              {
-                nomor: "03",
-                judul: "Ajukan Pesanan",
-                isi: "Kirim pesanan dan tunggu konfirmasi dari admin.",
-              },
-              {
-                nomor: "04",
-                judul: "Motor Siap",
-                isi: "Setelah disetujui, motor siap digunakan.",
-              },
-            ].map((step) => (
               <div
-                key={step.nomor}
                 style={{
-                  padding: "28px",
-                  background: "#F0F7FF",
-                  borderRadius: "18px",
-                  border: "1px solid #DCEBFF",
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+                  gap: "25px",
                 }}
               >
-                <div
-                  style={{
-                    color: "#0F4CDB",
-                    fontSize: "15px",
-                    fontWeight: "900",
-                    marginBottom: "15px",
-                  }}
-                >
-                  {step.nomor}
-                </div>
-
-                <h3
-                  style={{
-                    color: "#111827",
-                    margin: "0 0 10px",
-                    fontSize: "20px",
-                  }}
-                >
-                  {step.judul}
-                </h3>
-
-                <p
-                  style={{
-                    color: "#4B5563",
-                    lineHeight: "1.6",
-                    margin: 0,
-                  }}
-                >
-                  {step.isi}
-                </p>
+                {[
+                  ["01", "Pilih Motor", "Pilih motor yang sesuai dengan kebutuhan perjalananmu."],
+                  ["02", "Isi Data", "Masukkan data penyewaan dan tanggal penggunaan motor."],
+                  ["03", "Ajukan Pesanan", "Kirim pesanan dan tunggu konfirmasi dari admin."],
+                  ["04", "Motor Siap", "Setelah disetujui, motor siap digunakan."],
+                ].map((step) => (
+                  <div
+                    key={step[0]}
+                    style={{
+                      padding: "28px",
+                      background: "#F0F7FF",
+                      borderRadius: "18px",
+                      border: "1px solid #DCEBFF",
+                    }}
+                  >
+                    <div
+                      style={{
+                        color: "#0F4CDB",
+                        fontSize: "15px",
+                        fontWeight: "900",
+                        marginBottom: "15px",
+                      }}
+                    >
+                      {step[0]}
+                    </div>
+                    <h3 style={{ color: "#111827", margin: "0 0 10px" }}>
+                      {step[1]}
+                    </h3>
+                    <p style={{ color: "#4B5563", lineHeight: "1.6", margin: 0 }}>
+                      {step[2]}
+                    </p>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-        </div>
-      </section>
+            </div>
+          </section>
 
-      {/* CTA */}
-      <section
-        style={{
-          padding: "70px 7%",
-          background: "linear-gradient(135deg, #0F4CDB, #1677FF)",
-          color: "white",
-          textAlign: "center",
-        }}
-      >
-        <h2
-          style={{
-            fontSize: "40px",
-            margin: "0 0 15px",
-            fontWeight: "900",
-          }}
-        >
-          Siap Memulai Perjalanan?
-        </h2>
-
-        <p
-          style={{
-            fontSize: "18px",
-            margin: "0 auto 28px",
-            maxWidth: "650px",
-            color: "rgba(255,255,255,0.9)",
-          }}
-        >
-          Pilih motor favoritmu dan lakukan pemesanan dengan mudah melalui
-          RETTOR.
-        </p>
-
-        <Link
-          href="/"
-          style={{
-            display: "inline-block",
-            background: "white",
-            color: "#0F4CDB",
-            padding: "14px 28px",
-            borderRadius: "12px",
-            textDecoration: "none",
-            fontWeight: "800",
-          }}
-        >
-          Kembali ke Beranda
-        </Link>
-      </section>
+          <section
+            style={{
+              padding: "70px 7%",
+              background: "linear-gradient(135deg, #0F4CDB, #1677FF)",
+              color: "white",
+              textAlign: "center",
+            }}
+          >
+            <h2 style={{ fontSize: "40px", margin: "0 0 15px", fontWeight: "900" }}>
+              Siap Memulai Perjalanan?
+            </h2>
+            <p style={{ fontSize: "18px", margin: "0 auto 28px", maxWidth: "650px" }}>
+              Pilih motor favoritmu dan lakukan pemesanan dengan mudah melalui RETTOR.
+            </p>
+            <Link
+              href="/"
+              style={{
+                display: "inline-block",
+                background: "white",
+                color: "#0F4CDB",
+                padding: "14px 28px",
+                borderRadius: "12px",
+                textDecoration: "none",
+                fontWeight: "800",
+              }}
+            >
+              Kembali ke Beranda
+            </Link>
+          </section>
+        </>
+      )}
 
       {/* FOOTER */}
       <footer
@@ -678,105 +521,36 @@ export default function MotorPage() {
             maxWidth: "1200px",
             margin: "auto",
             display: "grid",
-            gridTemplateColumns:
-              "repeat(auto-fit, minmax(220px, 1fr))",
+            gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
             gap: "35px",
           }}
         >
           <div>
-            <h2
-              style={{
-                margin: "0 0 12px",
-                fontSize: "28px",
-                fontWeight: "900",
-              }}
-            >
+            <h2 style={{ margin: "0 0 12px", fontSize: "28px", fontWeight: "900" }}>
               RETTOR
             </h2>
-
-            <p
-              style={{
-                color: "#CBD5E1",
-                lineHeight: "1.7",
-              }}
-            >
+            <p style={{ color: "#CBD5E1", lineHeight: "1.7" }}>
               Rental motor terpercaya untuk perjalanan yang lebih mudah,
               nyaman, dan praktis.
             </p>
           </div>
 
           <div>
-            <h3 style={{ marginBottom: "15px" }}>
-              Navigasi
-            </h3>
-
-            <Link
-              href="/"
-              style={{
-                display: "block",
-                color: "#CBD5E1",
-                textDecoration: "none",
-                marginBottom: "10px",
-              }}
-            >
-              Beranda
-            </Link>
-
-            <Link
-              href="/motor"
-              style={{
-                display: "block",
-                color: "#CBD5E1",
-                textDecoration: "none",
-                marginBottom: "10px",
-              }}
-            >
-              Motor
-            </Link>
-
-            <Link
-              href="/login"
-              style={{
-                display: "block",
-                color: "#CBD5E1",
-                textDecoration: "none",
-              }}
-            >
-              Login
-            </Link>
+            <h3 style={{ marginBottom: "15px" }}>Navigasi</h3>
+            <FooterLink href="/">Beranda</FooterLink>
+            <FooterLink href="/motor">Motor</FooterLink>
+            {roleLoaded && isAdmin ? (
+              <FooterLink href="/admin">Dashboard Admin</FooterLink>
+            ) : (
+              <FooterLink href="/login">Login</FooterLink>
+            )}
           </div>
 
           <div>
-            <h3 style={{ marginBottom: "15px" }}>
-              Layanan
-            </h3>
-
-            <p
-              style={{
-                color: "#CBD5E1",
-                margin: "0 0 10px",
-              }}
-            >
-              Rental Motor
-            </p>
-
-            <p
-              style={{
-                color: "#CBD5E1",
-                margin: "0 0 10px",
-              }}
-            >
-              Pemesanan Online
-            </p>
-
-            <p
-              style={{
-                color: "#CBD5E1",
-                margin: 0,
-              }}
-            >
-              Konfirmasi Admin
-            </p>
+            <h3 style={{ marginBottom: "15px" }}>Layanan</h3>
+            <p style={{ color: "#CBD5E1", margin: "0 0 10px" }}>Rental Motor</p>
+            <p style={{ color: "#CBD5E1", margin: "0 0 10px" }}>Pemesanan Online</p>
+            <p style={{ color: "#CBD5E1", margin: 0 }}>Konfirmasi Admin</p>
           </div>
         </div>
 
@@ -795,5 +569,45 @@ export default function MotorPage() {
         </div>
       </footer>
     </main>
+  );
+}
+
+const linkNav = {
+  color: "#374151",
+  textDecoration: "none",
+  fontWeight: "600",
+};
+
+const tombolLogin = {
+  background: "#0F4CDB",
+  color: "white",
+  padding: "10px 20px",
+  borderRadius: "10px",
+  textDecoration: "none",
+  fontWeight: "700",
+};
+
+function InfoBar({ angka, teks }) {
+  return (
+    <div>
+      <strong style={{ color: "#0F4CDB", fontSize: "22px" }}>{angka}</strong>
+      <p style={{ margin: "4px 0", color: "#4B5563" }}>{teks}</p>
+    </div>
+  );
+}
+
+function FooterLink({ href, children }) {
+  return (
+    <Link
+      href={href}
+      style={{
+        display: "block",
+        color: "#CBD5E1",
+        textDecoration: "none",
+        marginBottom: "10px",
+      }}
+    >
+      {children}
+    </Link>
   );
 }

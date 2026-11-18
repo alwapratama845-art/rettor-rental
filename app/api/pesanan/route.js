@@ -1,4 +1,7 @@
+
 import db from "../../../db";
+
+const DEPOSIT_TETAP = 200000;
 
 // GET - Ambil pesanan
 export async function GET(request) {
@@ -17,7 +20,7 @@ export async function GET(request) {
         [Number(userId)]
       );
     } else {
-      // Untuk ADMIN: tampilkan semua pesanan
+      // ADMIN: tampilkan semua pesanan
       result = await db.query(
         `SELECT *
          FROM pesanan
@@ -41,7 +44,6 @@ export async function GET(request) {
     );
   }
 }
-
 
 // POST - Simpan pesanan
 export async function POST(request) {
@@ -83,7 +85,7 @@ export async function POST(request) {
       );
     }
 
-    await db.query(
+    const result = await db.query(
       `INSERT INTO pesanan
       (
         user_id,
@@ -100,14 +102,18 @@ export async function POST(request) {
         hari_terlambat,
         denda,
         total_harga,
+        jumlah_deposit,
+        status_deposit,
+        catatan_deposit,
         status
       )
       VALUES
       (
         $1, $2, $3, $4, $5, $6, $7,
         $8, $9, $10, $11, $12, $13, $14,
-        'menunggu'
-      )`,
+        $15, 'menunggu', NULL, 'menunggu'
+      )
+      RETURNING *`,
       [
         Number(user_id),
         nama,
@@ -123,12 +129,14 @@ export async function POST(request) {
         Number(hari_terlambat) || 0,
         Number(denda) || 0,
         Number(total_harga),
+        DEPOSIT_TETAP,
       ]
     );
 
     return Response.json({
       success: true,
       message: "Penyewaan berhasil diajukan.",
+      pesanan: result.rows[0],
     });
   } catch (error) {
     console.error("POST PESANAN ERROR:", error);
@@ -143,19 +151,78 @@ export async function POST(request) {
   }
 }
 
-
-// PUT - Konfirmasi / Tolak pesanan
+// PUT - Konfirmasi / Tolak pesanan / Update deposit
 export async function PUT(request) {
   try {
     const body = await request.json();
 
-    const { id, status } = body;
+    const { id, status, status_deposit, catatan_deposit } = body;
 
-    if (!id || !status) {
+    if (!id || !Number.isInteger(Number(id))) {
       return Response.json(
         {
           success: false,
-          message: "ID dan status wajib diisi.",
+          message: "ID pesanan tidak valid.",
+        },
+        { status: 400 }
+      );
+    }
+
+    // UPDATE STATUS DEPOSIT
+    if (status_deposit !== undefined) {
+      const statusDepositValid = [
+        "menunggu",
+        "diterima",
+        "dikembalikan",
+        "dipotong",
+      ];
+
+      if (!statusDepositValid.includes(status_deposit)) {
+        return Response.json(
+          {
+            success: false,
+            message: "Status deposit tidak valid.",
+          },
+          { status: 400 }
+        );
+      }
+
+      const result = await db.query(
+        `UPDATE pesanan
+         SET status_deposit = $1,
+             catatan_deposit = $2
+         WHERE id = $3
+         RETURNING *`,
+        [
+          status_deposit,
+          catatan_deposit || null,
+          Number(id),
+        ]
+      );
+
+      if (result.rows.length === 0) {
+        return Response.json(
+          {
+            success: false,
+            message: "Pesanan tidak ditemukan.",
+          },
+          { status: 404 }
+        );
+      }
+
+      return Response.json({
+        success: true,
+        message: "Status deposit berhasil diperbarui.",
+        pesanan: result.rows[0],
+      });
+    }
+
+    // UPDATE STATUS PESANAN
+    if (!status) {
+      return Response.json(
+        {
+          success: false,
+          message: "Status wajib diisi.",
         },
         { status: 400 }
       );
@@ -205,7 +272,7 @@ export async function PUT(request) {
     return Response.json(
       {
         success: false,
-        message: "Gagal mengubah status pesanan.",
+        message: "Gagal mengubah data pesanan.",
       },
       { status: 500 }
     );

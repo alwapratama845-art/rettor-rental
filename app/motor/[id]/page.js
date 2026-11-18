@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect, useState } from "react";
@@ -9,11 +10,22 @@ export default function DetailMotor() {
 
   const [motor, setMotor] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [role, setRole] = useState(null);
+  const [roleLoaded, setRoleLoaded] = useState(false);
 
   useEffect(() => {
+    try {
+      const user = JSON.parse(localStorage.getItem("rettor_user") || "null");
+      setRole(user?.role || null);
+    } catch {
+      setRole(null);
+    } finally {
+      setRoleLoaded(true);
+    }
+
     if (!id) return;
 
-    const ambilDetailMotor = async () => {
+    async function ambilDetailMotor() {
       try {
         const response = await fetch(`/api/motor/${id}`);
         const data = await response.json();
@@ -29,20 +41,22 @@ export default function DetailMotor() {
       } finally {
         setLoading(false);
       }
-    };
+    }
 
     ambilDetailMotor();
   }, [id]);
+
+  const isAdmin = role === "admin";
 
   const formatRupiah = (angka) => {
     return new Intl.NumberFormat("id-ID", {
       style: "currency",
       currency: "IDR",
       minimumFractionDigits: 0,
-    }).format(angka);
+    }).format(angka || 0);
   };
 
-  if (loading) {
+  if (loading || !roleLoaded) {
     return (
       <main
         style={{
@@ -73,7 +87,6 @@ export default function DetailMotor() {
         }}
       >
         <h2>Motor tidak ditemukan</h2>
-
         <a
           href="/motor"
           style={{
@@ -114,6 +127,8 @@ export default function DetailMotor() {
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
+            flexWrap: "wrap",
+            gap: "15px",
           }}
         >
           <a
@@ -133,56 +148,30 @@ export default function DetailMotor() {
               display: "flex",
               gap: "25px",
               alignItems: "center",
+              flexWrap: "wrap",
             }}
           >
-            <a
-              href="/"
-              style={{
-                textDecoration: "none",
-                color: "#374151",
-                fontWeight: "600",
-              }}
-            >
-              Beranda
-            </a>
-
+            <a href="/" style={linkNav}>Beranda</a>
             <a
               href="/motor"
-              style={{
-                textDecoration: "none",
-                color: "#2563eb",
-                fontWeight: "bold",
-              }}
+              style={{ ...linkNav, color: "#2563eb", fontWeight: "bold" }}
             >
               Motor
             </a>
 
-            <a
-              href="/pesanan"
-              style={{
-                textDecoration: "none",
-                color: "#374151",
-                fontWeight: "600",
-              }}
-            >
-              Pesanan Saya
-            </a>
-
-            <a
-              href="/profil"
-              style={{
-                textDecoration: "none",
-                color: "#374151",
-                fontWeight: "600",
-              }}
-            >
-              Profil
-            </a>
+            {isAdmin ? (
+              <a href="/admin" style={linkNav}>Dashboard Admin</a>
+            ) : (
+              <>
+                <a href="/pesanan" style={linkNav}>Pesanan Saya</a>
+                <a href="/profil" style={linkNav}>Profil</a>
+              </>
+            )}
           </div>
         </div>
       </nav>
 
-      {/* DETAIL */}
+      {/* DETAIL MOTOR */}
       <section
         style={{
           maxWidth: "1100px",
@@ -209,19 +198,18 @@ export default function DetailMotor() {
             overflow: "hidden",
             boxShadow: "0 5px 25px rgba(0,0,0,0.08)",
             display: "grid",
-            gridTemplateColumns: "1fr 1fr",
+            gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
           }}
         >
-          {/* GAMBAR DARI DATABASE */}
+          {/* GAMBAR MOTOR */}
           <div
             style={{
-              minHeight: "500px",
+              minHeight: "400px",
               background: "#f3f4f6",
               display: "flex",
               justifyContent: "center",
               alignItems: "center",
               padding: "30px",
-              position: "relative",
             }}
           >
             {motor.gambar ? (
@@ -236,13 +224,7 @@ export default function DetailMotor() {
                 }}
               />
             ) : (
-              <span
-                style={{
-                  fontSize: "100px",
-                }}
-              >
-                🏍️
-              </span>
+              <span style={{ fontSize: "100px" }}>🏍️</span>
             )}
           </div>
 
@@ -299,12 +281,7 @@ export default function DetailMotor() {
                 borderRadius: "12px",
               }}
             >
-              <p
-                style={{
-                  margin: 0,
-                  color: "#6b7280",
-                }}
-              >
+              <p style={{ margin: 0, color: "#6b7280" }}>
                 Harga sewa per hari
               </p>
 
@@ -319,26 +296,52 @@ export default function DetailMotor() {
               </h2>
             </div>
 
-            <a
-              href={`/sewa?motor=${motor.id}`}
-              style={{
-                marginTop: "25px",
-                display: "block",
-                textAlign: "center",
-                background: "#2563eb",
-                color: "white",
-                padding: "15px",
-                borderRadius: "9px",
-                textDecoration: "none",
-                fontWeight: "bold",
-                fontSize: "17px",
-              }}
-            >
-              Sewa Motor Ini
-            </a>
+            {/* TOMBOL SEWA HANYA UNTUK PELANGGAN */}
+            {!isAdmin ? (
+              <a
+                href={`/sewa?motor=${motor.id}`}
+                style={{
+                  marginTop: "25px",
+                  display: "block",
+                  textAlign: "center",
+                  background: "#2563eb",
+                  color: "white",
+                  padding: "15px",
+                  borderRadius: "9px",
+                  textDecoration: "none",
+                  fontWeight: "bold",
+                  fontSize: "17px",
+                }}
+              >
+                Sewa Motor Ini
+              </a>
+            ) : (
+              <div
+                style={{
+                  marginTop: "25px",
+                  padding: "15px",
+                  background: "#eff6ff",
+                  border: "1px solid #bfdbfe",
+                  borderRadius: "9px",
+                  color: "#1e40af",
+                  textAlign: "center",
+                  fontWeight: "600",
+                  lineHeight: "1.6",
+                }}
+              >
+                Anda masuk sebagai Admin. Fitur penyewaan hanya tersedia
+                untuk pelanggan.
+              </div>
+            )}
           </div>
         </div>
       </section>
     </main>
   );
 }
+
+const linkNav = {
+  textDecoration: "none",
+  color: "#374151",
+  fontWeight: "600",
+};
