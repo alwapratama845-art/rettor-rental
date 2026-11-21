@@ -1,10 +1,8 @@
-import db from "../../../db";
+import { prisma } from "../../../lib/prisma.js";
 
 export async function POST(request) {
   try {
-    const body = await request.json();
-
-    const { nama, email, password } = body;
+    const { nama, email, password } = await request.json();
 
     if (!nama || !email || !password) {
       return Response.json(
@@ -16,12 +14,11 @@ export async function POST(request) {
       );
     }
 
-    const cekUser = await db.query(
-      "SELECT id FROM users WHERE email = $1",
-      [email]
-    );
+    const cekUser = await prisma.users.findUnique({
+      where: { email },
+    });
 
-    if (cekUser.rows.length > 0) {
+    if (cekUser) {
       return Response.json(
         {
           success: false,
@@ -31,14 +28,28 @@ export async function POST(request) {
       );
     }
 
-    await db.query(
-      "INSERT INTO users (nama, email, password) VALUES ($1, $2, $3)",
-      [nama, email, password]
-    );
+    const user = await prisma.users.create({
+      data: {
+        nama,
+        email,
+        password,
+        role: "user",
+      },
+      select: {
+        id_users: true,
+        nama: true,
+        email: true,
+        role: true,
+      },
+    });
 
     return Response.json({
       success: true,
       message: "Registrasi berhasil.",
+      user: {
+        ...user,
+        id: user.id_users,
+      },
     });
   } catch (error) {
     console.error("REGISTER ERROR:", error);

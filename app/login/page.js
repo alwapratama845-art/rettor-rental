@@ -46,7 +46,7 @@ export default function LoginPage() {
 
       // USER
       else {
-        window.location.href = "/user";
+        window.location.href = "/";
       }
 
     } catch (error) {

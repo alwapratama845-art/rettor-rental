@@ -1,36 +1,93 @@
-
-import db from "../../../db";
+import { prisma } from "../../../lib/prisma.js";
 
 const DEPOSIT_TETAP = 200000;
 
-// GET - Ambil pesanan
+// =========================
+// FORMAT RESPONS PESANAN
+// =========================
+function formatPesanan(data) {
+  const transaksi = data.transaksi_harga;
+
+  return {
+    id: data.id_pesanan,
+    id_pesanan: data.id_pesanan,
+
+    user_id: data.id_users,
+    id_users: data.id_users,
+
+    id_motor: data.id_motor,
+
+    nama: data.users.nama,
+    telepon: data.users.telepon,
+
+    motor: data.motor.nama_motor,
+    nama_motor: data.motor.nama_motor,
+
+    tanggal_mulai: data.tanggal_mulai,
+    tanggal_selesai: data.tanggal_selesai,
+    tanggal_kembali: data.tanggal_kembali,
+
+    jumlah_hari: data.jumlah_hari,
+    hari_terlambat: data.hari_terlambat,
+
+    harga_per_hari:
+      transaksi?.harga_sewa_snapshot.toString() || "0",
+
+    persen_diskon: transaksi?.persen_diskon || 0,
+
+    jumlah_diskon:
+      transaksi?.jumlah_diskon.toString() || "0",
+
+    denda: transaksi?.denda.toString() || "0",
+
+    total_harga:
+      transaksi?.total_biaya.toString() || "0",
+
+    // STATUS PESANAN
+    status: data.status_pesanan,
+    status_pesanan: data.status_pesanan,
+
+    // STATUS DEPOSIT
+    jumlah_deposit: data.jumlah_deposit?.toString() || "0",
+    status_deposit: data.status_deposit || "menunggu",
+    catatan_deposit: data.catatan_deposit || null,
+  };
+}
+
+// =========================
+// INCLUDE RELASI
+// =========================
+const includePesanan = {
+  users: true,
+  motor: true,
+  transaksi_harga: true,
+};
+
+// =========================
+// GET - TAMPILKAN PESANAN
+// =========================
 export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get("user_id");
 
-    let result;
+    const data = await prisma.pesanan.findMany({
+      where: userId
+        ? {
+            id_users: Number(userId),
+          }
+        : undefined,
 
-    if (userId) {
-      result = await db.query(
-        `SELECT *
-         FROM pesanan
-         WHERE user_id = $1
-         ORDER BY id DESC`,
-        [Number(userId)]
-      );
-    } else {
-      // ADMIN: tampilkan semua pesanan
-      result = await db.query(
-        `SELECT *
-         FROM pesanan
-         ORDER BY id DESC`
-      );
-    }
+      include: includePesanan,
+
+      orderBy: {
+        id_pesanan: "desc",
+      },
+    });
 
     return Response.json({
       success: true,
-      pesanan: result.rows,
+      pesanan: data.map(formatPesanan),
     });
   } catch (error) {
     console.error("GET PESANAN ERROR:", error);
@@ -45,15 +102,17 @@ export async function GET(request) {
   }
 }
 
-// POST - Simpan pesanan
+// =========================
+// POST - TAMBAH PESANAN
+// =========================
 export async function POST(request) {
   try {
     const body = await request.json();
 
     const {
       user_id,
-      nama,
-      telepon,
+      id_users,
+      id_motor,
       motor,
       harga_per_hari,
       persen_diskon,
@@ -67,11 +126,30 @@ export async function POST(request) {
       total_harga,
     } = body;
 
+    const userId = Number(id_users || user_id);
+
+    // CARI MOTOR BERDASARKAN ID ATAU NAMA
+    let motorId = Number(id_motor);
+
+    if (!motorId && motor) {
+      const motorData = /^\d+$/.test(String(motor))
+        ? await prisma.motor.findUnique({
+            where: {
+              id_motor: Number(motor),
+            },
+          })
+        : await prisma.motor.findFirst({
+            where: {
+              nama_motor: String(motor),
+            },
+          });
+
+      motorId = motorData?.id_motor;
+    }
+
     if (
-      !user_id ||
-      !nama ||
-      !telepon ||
-      !motor ||
+      !userId ||
+      !motorId ||
       !tanggal_mulai ||
       !tanggal_selesai ||
       !tanggal_kembali
@@ -79,64 +157,96 @@ export async function POST(request) {
       return Response.json(
         {
           success: false,
-          message: "Semua data wajib diisi.",
+          message: "Data pesanan belum lengkap.",
         },
         { status: 400 }
       );
     }
 
-    const result = await db.query(
-      `INSERT INTO pesanan
-      (
-        user_id,
-        nama,
-        telepon,
-        motor,
-        harga_per_hari,
-        persen_diskon,
-        jumlah_diskon,
-        tanggal_mulai,
-        tanggal_selesai,
-        tanggal_kembali,
-        jumlah_hari,
-        hari_terlambat,
-        denda,
-        total_harga,
-        jumlah_deposit,
-        status_deposit,
-        catatan_deposit,
-        status
-      )
-      VALUES
-      (
-        $1, $2, $3, $4, $5, $6, $7,
-        $8, $9, $10, $11, $12, $13, $14,
-        $15, 'menunggu', NULL, 'menunggu'
-      )
-      RETURNING *`,
-      [
-        Number(user_id),
-        nama,
-        telepon,
-        motor,
-        Number(harga_per_hari),
-        Number(persen_diskon) || 0,
-        Number(jumlah_diskon) || 0,
-        tanggal_mulai,
-        tanggal_selesai,
-        tanggal_kembali,
-        Number(jumlah_hari),
-        Number(hari_terlambat) || 0,
-        Number(denda) || 0,
-        Number(total_harga),
-        DEPOSIT_TETAP,
-      ]
+    const user = await prisma.users.findUnique({
+      where: {
+        id_users: userId,
+      },
+    });
+
+    const motorData = await prisma.motor.findUnique({
+      where: {
+        id_motor: motorId,
+      },
+    });
+
+    if (!user || !motorData) {
+      return Response.json(
+        {
+          success: false,
+          message: "User atau motor tidak ditemukan.",
+        },
+        { status: 404 }
+      );
+    }
+
+    const harga = BigInt(
+      harga_per_hari || motorData.harga_per_hari
     );
+
+    const diskon = BigInt(jumlah_diskon || 0);
+    const dendaValue = BigInt(denda || 0);
+
+    const jumlahHari = Number(jumlah_hari);
+
+    if (!Number.isInteger(jumlahHari) || jumlahHari < 1) {
+      return Response.json(
+        {
+          success: false,
+          message: "Jumlah hari tidak valid.",
+        },
+        { status: 400 }
+      );
+    }
+
+    const total =
+      total_harga !== undefined
+        ? BigInt(total_harga)
+        : harga * BigInt(jumlahHari) - diskon + dendaValue;
+
+    // SIMPAN PESANAN
+    const pesanan = await prisma.pesanan.create({
+      data: {
+        id_users: userId,
+        id_motor: motorId,
+
+        tanggal_mulai: new Date(tanggal_mulai),
+        tanggal_selesai: new Date(tanggal_selesai),
+        tanggal_kembali: new Date(tanggal_kembali),
+
+        jumlah_hari: jumlahHari,
+        hari_terlambat: Number(hari_terlambat) || 0,
+
+        status_pesanan: "menunggu",
+
+        // DATA DEPOSIT
+        jumlah_deposit: BigInt(DEPOSIT_TETAP),
+        status_deposit: "menunggu",
+        catatan_deposit: null,
+
+        transaksi_harga: {
+          create: {
+            harga_sewa_snapshot: harga,
+            persen_diskon: Number(persen_diskon) || 0,
+            jumlah_diskon: diskon,
+            denda: dendaValue,
+            total_biaya: total,
+          },
+        },
+      },
+
+      include: includePesanan,
+    });
 
     return Response.json({
       success: true,
       message: "Penyewaan berhasil diajukan.",
-      pesanan: result.rows[0],
+      pesanan: formatPesanan(pesanan),
     });
   } catch (error) {
     console.error("POST PESANAN ERROR:", error);
@@ -151,14 +261,25 @@ export async function POST(request) {
   }
 }
 
-// PUT - Konfirmasi / Tolak pesanan / Update deposit
+// =========================
+// PUT - UPDATE PESANAN / DEPOSIT
+// =========================
 export async function PUT(request) {
   try {
     const body = await request.json();
 
-    const { id, status, status_deposit, catatan_deposit } = body;
+    const {
+      id,
+      id_pesanan,
+      status,
+      status_pesanan,
+      status_deposit,
+      catatan_deposit,
+    } = body;
 
-    if (!id || !Number.isInteger(Number(id))) {
+    const pesananId = Number(id_pesanan || id);
+
+    if (!Number.isInteger(pesananId) || pesananId <= 0) {
       return Response.json(
         {
           success: false,
@@ -168,16 +289,20 @@ export async function PUT(request) {
       );
     }
 
+    // =================================
     // UPDATE STATUS DEPOSIT
+    // =================================
     if (status_deposit !== undefined) {
-      const statusDepositValid = [
+      const statusDepositBaru = status_deposit;
+
+      const daftarStatusDeposit = [
         "menunggu",
         "diterima",
         "dikembalikan",
         "dipotong",
       ];
 
-      if (!statusDepositValid.includes(status_deposit)) {
+      if (!daftarStatusDeposit.includes(statusDepositBaru)) {
         return Response.json(
           {
             success: false,
@@ -187,20 +312,13 @@ export async function PUT(request) {
         );
       }
 
-      const result = await db.query(
-        `UPDATE pesanan
-         SET status_deposit = $1,
-             catatan_deposit = $2
-         WHERE id = $3
-         RETURNING *`,
-        [
-          status_deposit,
-          catatan_deposit || null,
-          Number(id),
-        ]
-      );
+      const pesananLama = await prisma.pesanan.findUnique({
+        where: {
+          id_pesanan: pesananId,
+        },
+      });
 
-      if (result.rows.length === 0) {
+      if (!pesananLama) {
         return Response.json(
           {
             success: false,
@@ -210,61 +328,121 @@ export async function PUT(request) {
         );
       }
 
+      // DEPOSIT HANYA DAPAT DITERIMA JIKA PESANAN DISETUJUI
+      if (
+        statusDepositBaru === "diterima" &&
+        pesananLama.status_pesanan !== "disetujui"
+      ) {
+        return Response.json(
+          {
+            success: false,
+            message: "Deposit hanya dapat diterima jika pesanan sudah disetujui.",
+          },
+          { status: 400 }
+        );
+      }
+
+      // PENGEMBALIAN DAN PEMOTONGAN HARUS SETELAH DEPOSIT DITERIMA
+      if (
+        ["dikembalikan", "dipotong"].includes(statusDepositBaru) &&
+        pesananLama.status_deposit !== "diterima"
+      ) {
+        return Response.json(
+          {
+            success: false,
+            message: "Deposit harus diterima terlebih dahulu.",
+          },
+          { status: 400 }
+        );
+      }
+
+      // ALASAN PEMOTONGAN WAJIB DIISI
+      if (
+        statusDepositBaru === "dipotong" &&
+        !String(catatan_deposit || "").trim()
+      ) {
+        return Response.json(
+          {
+            success: false,
+            message: "Alasan pemotongan deposit wajib diisi.",
+          },
+          { status: 400 }
+        );
+      }
+
+      // UPDATE HANYA FIELD DEPOSIT
+      const dataUpdate = {
+        status_deposit: statusDepositBaru,
+      };
+
+      if (catatan_deposit !== undefined) {
+        dataUpdate.catatan_deposit =
+          String(catatan_deposit).trim() || null;
+      }
+
+      const pesanan = await prisma.pesanan.update({
+        where: {
+          id_pesanan: pesananId,
+        },
+
+        data: dataUpdate,
+
+        include: includePesanan,
+      });
+
+      const pesan =
+        statusDepositBaru === "diterima"
+          ? "Deposit berhasil diterima."
+          : statusDepositBaru === "dikembalikan"
+          ? "Deposit berhasil dikembalikan."
+          : statusDepositBaru === "dipotong"
+          ? "Deposit berhasil ditandai sebagai dipotong."
+          : "Status deposit berhasil diperbarui.";
+
       return Response.json({
         success: true,
-        message: "Status deposit berhasil diperbarui.",
-        pesanan: result.rows[0],
+        message: pesan,
+        pesanan: formatPesanan(pesanan),
       });
     }
 
+    // =================================
     // UPDATE STATUS PESANAN
-    if (!status) {
+    // =================================
+    const statusBaru = status_pesanan || status;
+
+    if (!["menunggu", "disetujui", "ditolak"].includes(statusBaru)) {
       return Response.json(
         {
           success: false,
-          message: "Status wajib diisi.",
+          message: "Status pesanan tidak valid.",
         },
         { status: 400 }
       );
     }
 
-    if (!["menunggu", "disetujui", "ditolak"].includes(status)) {
-      return Response.json(
-        {
-          success: false,
-          message: "Status tidak valid.",
-        },
-        { status: 400 }
-      );
-    }
+    const pesanan = await prisma.pesanan.update({
+      where: {
+        id_pesanan: pesananId,
+      },
 
-    const result = await db.query(
-      `UPDATE pesanan
-       SET status = $1
-       WHERE id = $2
-       RETURNING *`,
-      [status, Number(id)]
-    );
+      data: {
+        status_pesanan: statusBaru,
+      },
 
-    if (result.rows.length === 0) {
-      return Response.json(
-        {
-          success: false,
-          message: "Pesanan tidak ditemukan.",
-        },
-        { status: 404 }
-      );
-    }
+      include: includePesanan,
+    });
 
     return Response.json({
       success: true,
       message:
-        status === "disetujui"
+        statusBaru === "disetujui"
           ? "Pesanan berhasil dikonfirmasi."
-          : status === "ditolak"
+          : statusBaru === "ditolak"
           ? "Pesanan berhasil ditolak."
-          : "Status berhasil diubah.",
-      pesanan: result.rows[0],
+          : "Status pesanan berhasil diperbarui.",
+
+      pesanan: formatPesanan(pesanan),
     });
   } catch (error) {
     console.error("PUT PESANAN ERROR:", error);
@@ -272,9 +450,12 @@ export async function PUT(request) {
     return Response.json(
       {
         success: false,
-        message: "Gagal mengubah data pesanan.",
+        message:
+          error.code === "P2025"
+            ? "Pesanan tidak ditemukan."
+            : "Gagal mengubah data pesanan.",
       },
-      { status: 500 }
+      { status: error.code === "P2025" ? 404 : 500 }
     );
   }
 }

@@ -1,0 +1,58 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model users {
+  id_users Int       @id @default(autoincrement())
+  nama     String    @db.VarChar(100)
+  email    String    @unique @db.VarChar(150)
+  password String    @db.VarChar(255)
+  role     String?   @default("user") @db.VarChar(20)
+  pesanan  pesanan[]
+}
+
+model motor {
+  id_motor       Int       @id @default(autoincrement())
+  nama_motor     String    @db.VarChar(100)
+  jenis          String    @db.VarChar(50)
+  cc             Int
+  harga_per_hari BigInt
+  gambar         String?   @db.VarChar(255)
+  pesanan        pesanan[]
+}
+
+model pesanan {
+  id_pesanan       Int      @id @default(autoincrement())
+  id_users         Int
+  id_motor         Int
+  tanggal_mulai    DateTime
+  tanggal_selesai  DateTime
+  tanggal_kembali  DateTime
+  jumlah_hari      Int
+  hari_terlambat   Int      @default(0)
+  status_pesanan   String   @default("menunggu")
+
+  jumlah_deposit   BigInt   @default(200000)
+  status_deposit   String   @default("menunggu")
+  catatan_deposit  String?
+
+  users            users    @relation(fields: [id_users], references: [id_users])
+  motor            motor    @relation(fields: [id_motor], references: [id_motor])
+  transaksi_harga  transaksi_harga?
+}
+
+model transaksi_harga {
+  id_transaksi        Int     @id @default(autoincrement())
+  id_pesanan          Int     @unique
+  harga_sewa_snapshot BigInt
+  persen_diskon       Int?    @default(0)
+  jumlah_diskon       BigInt? @default(0)
+  denda               BigInt? @default(0)
+  total_biaya         BigInt
+  pesanan             pesanan @relation(fields: [id_pesanan], references: [id_pesanan], onDelete: Cascade, map: "fk_transaksi_pesanan")
+}
