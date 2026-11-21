@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { AdminShell, Icon } from "../../components/site";
 
 export default function AdminMotorPage() {
   // =========================
@@ -232,704 +233,251 @@ export default function AdminMotorPage() {
 
 
   return (
-    <main
-      style={{
-        minHeight: "100vh",
-        background: "#f5f7fb",
-        padding: "30px",
-        fontFamily: "Arial, sans-serif",
-      }}
-    >
-
-      <div
-        style={{
-          maxWidth: "1200px",
-          margin: "0 auto",
-        }}
-      >
-
-        {/* ================= HEADER ================= */}
-        <div
-          style={{
-            background: "white",
-            padding: "25px",
-            borderRadius: "15px",
-            boxShadow: "0 3px 12px rgba(0,0,0,0.08)",
-            marginBottom: "25px",
-          }}
-        >
-
-          <h1
-            style={{
-              margin: 0,
-              fontSize: "32px",
-              color: "#111827",
-            }}
-          >
-            RETTOR ADMIN
-          </h1>
-
-          <p
-            style={{
-              color: "#6b7280",
-              marginTop: "8px",
-              marginBottom: "20px",
-            }}
-          >
-            Kelola data motor RETTOR RENTAL
-          </p>
-
-
-          {/* NAVIGASI */}
-          <div
-            style={{
-              display: "flex",
-              flexWrap: "wrap",
-              gap: "10px",
-            }}
-          >
-
-            <a
-              href="/admin"
-              style={{
-                background: "#111827",
-                color: "white",
-                padding: "12px 18px",
-                borderRadius: "8px",
-                textDecoration: "none",
-                fontWeight: "bold",
-              }}
-            >
-              ← Kembali ke Admin
-            </a>
-
-
-            <a
-              href="/admin"
-              style={{
-                background: "#16a34a",
-                color: "white",
-                padding: "12px 18px",
-                borderRadius: "8px",
-                textDecoration: "none",
-                fontWeight: "bold",
-              }}
-            >
-              📋 Kelola Pesanan
-            </a>
-
-
-            <a
-              href="/"
-              style={{
-                background: "#374151",
-                color: "white",
-                padding: "12px 18px",
-                borderRadius: "8px",
-                textDecoration: "none",
-                fontWeight: "bold",
-              }}
-            >
-              🏠 Website
-            </a>
-
-          </div>
-
-        </div>
-
+    <AdminShell tab="motor" judul="Motor terawat. Perjalanan hebat.">
+      <div className="flex flex-col gap-10">
 
         {/* ================= FORM ================= */}
-        <div
-          style={{
-            background: "white",
-            padding: "30px",
-            borderRadius: "15px",
-            boxShadow: "0 3px 12px rgba(0,0,0,0.08)",
-            marginBottom: "30px",
-          }}
-        >
+        <section className="flex flex-col gap-6">
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex flex-col gap-2">
+              <h2 className="text-[32px] font-normal leading-[1.2] tracking-[-1px] text-[#172f2c]">
+                {editId ? "Edit Motor" : "Tambah Motor"}
+              </h2>
+              <p className="text-sm text-[#687773]">
+                {editId
+                  ? "Ubah data motor yang dipilih."
+                  : "Tambahkan motor baru ke RETTOR RENTAL."}
+              </p>
+            </div>
+            <span className="hidden text-[11px] font-bold tracking-[0.5px] text-[#087f6d] sm:mt-6 sm:inline">
+              01 / INFORMASI MOTOR
+            </span>
+          </div>
 
-          <h2
-            style={{
-              color: "#111827",
-              marginTop: 0,
-              marginBottom: "8px",
-            }}
+          <form
+            onSubmit={handleSubmit}
+            className="flex flex-col gap-6 rounded-2xl border border-[#dee5df] bg-white p-5 sm:p-[29px]"
           >
-            {editId ? "✏️ Edit Motor" : "➕ Tambah Motor"}
-          </h2>
-
-          <p
-            style={{
-              color: "#6b7280",
-              marginBottom: "25px",
-            }}
-          >
-            {editId
-              ? "Ubah data motor yang dipilih."
-              : "Tambahkan motor baru ke RETTOR RENTAL."}
-          </p>
-
-
-          <form onSubmit={handleSubmit}>
-
-            {/* GRID FORM */}
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns:
-                  "repeat(auto-fit, minmax(250px, 1fr))",
-                gap: "18px",
-              }}
-            >
-
-              {/* NAMA */}
-              <div>
-                <label
-                  style={{
-                    display: "block",
-                    fontWeight: "bold",
-                    color: "#111827",
-                    marginBottom: "8px",
-                  }}
-                >
-                  Nama Motor
-                </label>
-
+            {/* DETAIL MOTOR */}
+            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+              <Field label="Nama Motor">
                 <input
                   type="text"
                   value={nama}
                   onChange={(e) => setNama(e.target.value)}
                   placeholder="Contoh: Yamaha Fazzio"
                   required
-                  style={inputStyle}
+                  className={inputCls}
                 />
-              </div>
+              </Field>
 
+              <Field label="Jenis Motor">
+                <div className="relative">
+                  <select
+                    value={jenis}
+                    onChange={(e) => setJenis(e.target.value)}
+                    className={`${inputCls} appearance-none pr-11`}
+                  >
+                    <option value="Matic">Matic</option>
+                    <option value="Manual">Manual</option>
+                    <option value="Sport">Sport</option>
+                  </select>
+                  <Icon
+                    name="chevron-down"
+                    className="pointer-events-none absolute right-[14px] top-1/2 size-[18px] -translate-y-1/2 text-[#687773]"
+                  />
+                </div>
+              </Field>
 
-              {/* JENIS */}
-              <div>
-                <label
-                  style={{
-                    display: "block",
-                    fontWeight: "bold",
-                    color: "#111827",
-                    marginBottom: "8px",
-                  }}
-                >
-                  Jenis Motor
-                </label>
-
-                <select
-                  value={jenis}
-                  onChange={(e) => setJenis(e.target.value)}
-                  style={inputStyle}
-                >
-                  <option value="Matic">Matic</option>
-                  <option value="Manual">Manual</option>
-                  <option value="Sport">Sport</option>
-                </select>
-              </div>
-
-
-              {/* CC */}
-              <div>
-                <label
-                  style={{
-                    display: "block",
-                    fontWeight: "bold",
-                    color: "#111827",
-                    marginBottom: "8px",
-                  }}
-                >
-                  CC Motor
-                </label>
-
+              <Field label="CC Motor">
                 <input
                   type="number"
                   value={cc}
                   onChange={(e) => setCc(e.target.value)}
                   placeholder="Contoh: 125"
                   required
-                  style={inputStyle}
+                  className={inputCls}
                 />
-              </div>
+              </Field>
 
-
-              {/* HARGA */}
-              <div>
-                <label
-                  style={{
-                    display: "block",
-                    fontWeight: "bold",
-                    color: "#111827",
-                    marginBottom: "8px",
-                  }}
-                >
-                  Harga Sewa / Hari
-                </label>
-
+              <Field label="Harga Sewa / Hari">
                 <input
                   type="number"
                   value={harga}
                   onChange={(e) => setHarga(e.target.value)}
                   placeholder="Contoh: 85000"
                   required
-                  style={inputStyle}
+                  className={inputCls}
                 />
-              </div>
-
+              </Field>
             </div>
 
-
-            {/* ================= FOTO ================= */}
-            <div
-              style={{
-                marginTop: "20px",
-                display: "grid",
-                gridTemplateColumns:
-                  "repeat(auto-fit, minmax(280px, 1fr))",
-                gap: "20px",
-              }}
-            >
-
-              {/* UPLOAD */}
-              <div>
-
-                <label
-                  style={{
-                    display: "block",
-                    fontWeight: "bold",
-                    color: "#111827",
-                    marginBottom: "8px",
-                  }}
-                >
-                  Foto Motor
-                </label>
-
-                <label
-                  style={{
-                    height: "200px",
-                    border: "2px dashed #cbd5e1",
-                    borderRadius: "10px",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    textAlign: "center",
-                    cursor: "pointer",
-                    background: "#fafafa",
-                    padding: "20px",
-                  }}
-                >
-
-                  <div>
-
-                    <div
-                      style={{
-                        fontSize: "42px",
-                        marginBottom: "8px",
-                      }}
-                    >
-                      📷
-                    </div>
-
-                    <div
-                      style={{
-                        fontWeight: "bold",
-                        color: "#111827",
-                      }}
-                    >
-                      Klik untuk pilih foto
-                    </div>
-
-                    <div
-                      style={{
-                        color: "#6b7280",
-                        fontSize: "14px",
-                        marginTop: "6px",
-                      }}
-                    >
-                      JPG, JPEG, PNG
-                    </div>
-
-                    <div
-                      style={{
-                        color: "#6b7280",
-                        fontSize: "13px",
-                        marginTop: "4px",
-                      }}
-                    >
-                      Maksimal 2 MB
-                    </div>
-
-                  </div>
-
+            {/* FOTO DAN PREVIEW */}
+            <div className="grid gap-6 md:grid-cols-2">
+              <Field label="Foto Motor">
+                <label className="flex h-[208px] cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-[#c5d6cb] bg-[#f8faf7] p-5 text-center transition hover:border-[#087f6d]">
+                  <Icon name="camera" className="mb-1 size-8 text-[#087f6d]" />
+                  <span className="text-sm font-semibold text-[#087f6d]">Klik untuk pilih foto</span>
+                  <span className="text-xs text-[#687773]">JPG, JPEG, PNG</span>
+                  <span className="text-xs text-[#687773]">Maksimal 2 MB</span>
                   <input
                     type="file"
                     accept="image/png,image/jpeg,image/jpg"
                     onChange={handleImageChange}
-                    style={{
-                      display: "none",
-                    }}
+                    className="hidden"
                   />
-
                 </label>
+              </Field>
 
-              </div>
-
-
-              {/* PREVIEW */}
-              <div>
-
-                <label
-                  style={{
-                    display: "block",
-                    fontWeight: "bold",
-                    color: "#111827",
-                    marginBottom: "8px",
-                  }}
-                >
-                  Preview Foto
-                </label>
-
-                <div
-                  style={{
-                    height: "200px",
-                    border: "1px solid #d1d5db",
-                    borderRadius: "10px",
-                    overflow: "hidden",
-                    background: "#f8fafc",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
-
+              <Field label="Preview Foto">
+                <div className="flex h-[208px] items-center justify-center overflow-hidden rounded-lg border border-[#dee5df] bg-[#f6f7f4]">
                   {preview ? (
-                    <img
-                      src={preview}
-                      alt="Preview motor"
-                      style={{
-                        width: "100%",
-                        height: "100%",
-                        objectFit: "contain",
-                      }}
-                    />
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={preview} alt="Preview motor" className="size-full object-contain" />
                   ) : (
-                    <span
-                      style={{
-                        color: "#9ca3af",
-                      }}
-                    >
-                      Belum ada foto
-                    </span>
+                    <div className="flex flex-col items-center gap-2 px-4 text-center">
+                      <span className="text-sm text-[#687773]">Belum ada foto</span>
+                      <span className="text-xs text-[#687773]">Preview foto motor akan tampil di sini.</span>
+                    </div>
                   )}
-
                 </div>
-
-              </div>
-
+              </Field>
             </div>
 
+            {/* AKSI */}
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <p className="text-xs text-[#687773]">Pastikan informasi dan foto motor sudah sesuai.</p>
 
-            {/* ================= BUTTON ================= */}
-            <div
-              style={{
-                display: "flex",
-                gap: "10px",
-                marginTop: "25px",
-              }}
-            >
+              <div className="flex gap-3">
+                {editId && (
+                  <button
+                    type="button"
+                    onClick={resetForm}
+                    className="flex h-[50px] items-center justify-center rounded-lg border border-[#dee5df] bg-white px-6 text-sm font-semibold text-[#172f2c] transition hover:bg-[#f8faf7]"
+                  >
+                    Batal
+                  </button>
+                )}
 
-              <button
-                type="submit"
-                style={{
-                  flex: 1,
-                  background: "#2563eb",
-                  color: "white",
-                  border: "none",
-                  padding: "14px",
-                  borderRadius: "8px",
-                  fontWeight: "bold",
-                  fontSize: "16px",
-                  cursor: "pointer",
-                }}
-              >
-                {editId
-                  ? "💾 Simpan Perubahan"
-                  : "➕ Tambah Motor"}
-              </button>
-
-
-              {editId && (
                 <button
-                  type="button"
-                  onClick={resetForm}
-                  style={{
-                    background: "#6b7280",
-                    color: "white",
-                    border: "none",
-                    padding: "14px 25px",
-                    borderRadius: "8px",
-                    fontWeight: "bold",
-                    cursor: "pointer",
-                  }}
+                  type="submit"
+                  className="flex h-[50px] flex-1 items-center justify-center gap-2 rounded-lg bg-[#087f6d] px-6 text-sm font-semibold text-white transition hover:bg-[#066b5c] sm:flex-none"
                 >
-                  Batal
+                  <Icon name={editId ? "check" : "plus"} className="size-[18px]" />
+                  {editId ? "Simpan Perubahan" : "Tambah Motor"}
                 </button>
-              )}
-
+              </div>
             </div>
-
           </form>
-
-        </div>
+        </section>
 
 
         {/* ================= DAFTAR MOTOR ================= */}
-        <div
-          style={{
-            marginBottom: "15px",
-          }}
-        >
-
-          <h2
-            style={{
-              color: "#111827",
-              marginBottom: "5px",
-            }}
-          >
-            🏍️ Daftar Motor
-          </h2>
-
-          <p
-            style={{
-              color: "#6b7280",
-            }}
-          >
-            Kelola motor yang tersedia di RETTOR RENTAL.
-          </p>
-
-        </div>
-
-
-        {/* ================= LOADING ================= */}
-        {loading ? (
-          <div style={cardStyle}>
-            Memuat data motor...
+        <section className="flex flex-col gap-6">
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex flex-col gap-2">
+              <h2 className="text-[32px] font-normal leading-[1.2] tracking-[-1px] text-[#172f2c]">Daftar Motor</h2>
+              <p className="text-sm text-[#687773]">Kelola motor yang tersedia di RETTOR RENTAL.</p>
+            </div>
+            <span className="mt-4 hidden rounded-full bg-[#e7f3ec] px-3.5 py-2 text-[11px] font-bold text-[#087f6d] sm:inline">
+              {motor.length} motor ditampilkan
+            </span>
           </div>
-        ) : motor.length === 0 ? (
-          <div style={cardStyle}>
-            Belum ada motor.
-          </div>
-        ) : (
 
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns:
-                "repeat(auto-fit, minmax(280px, 1fr))",
-              gap: "20px",
-            }}
-          >
-
-            {motor.map((item) => (
-
-              <div
-                key={item.id}
-                style={{
-                  background: "white",
-                  borderRadius: "15px",
-                  overflow: "hidden",
-                  boxShadow:
-                    "0 3px 12px rgba(0,0,0,0.08)",
-                }}
-              >
-
-                {/* FOTO MOTOR */}
-                <div
-                  style={{
-                    height: "210px",
-                    background: "#f8fafc",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
+          {loading ? (
+            <div className={emptyCls}>Memuat data motor...</div>
+          ) : motor.length === 0 ? (
+            <div className={emptyCls}>Belum ada motor.</div>
+          ) : (
+            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+              {motor.map((item) => (
+                <article
+                  key={item.id}
+                  className="overflow-hidden rounded-2xl border border-[#dee5df] bg-white"
                 >
-
-                  {item.gambar ? (
-                    <img
-                      src={item.gambar}
-                      alt={item.nama}
-                      style={{
-                        width: "100%",
-                        height: "100%",
-                        objectFit: "contain",
-                      }}
-                    />
-                  ) : (
-                    <span
-                      style={{
-                        fontSize: "60px",
-                      }}
-                    >
-                      🏍️
-                    </span>
-                  )}
-
-                </div>
-
-
-                {/* DETAIL */}
-                <div
-                  style={{
-                    padding: "20px",
-                  }}
-                >
-
-                  <h3
-                    style={{
-                      margin: "0 0 10px",
-                      color: "#111827",
-                      fontSize: "20px",
-                    }}
-                  >
-                    {item.nama}
-                  </h3>
-
-
-                  <div
-                    style={{
-                      display: "flex",
-                      gap: "8px",
-                      flexWrap: "wrap",
-                      marginBottom: "12px",
-                    }}
-                  >
-
-                    <span style={badgeStyle}>
-                      {item.jenis}
-                    </span>
-
-                    <span style={badgeStyle}>
-                      {item.cc}cc
-                    </span>
-
+                  {/* FOTO MOTOR */}
+                  <div className="flex h-[225px] items-center justify-center bg-[#f9fafc]">
+                    {item.gambar ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={item.gambar} alt={item.nama} className="size-full object-contain" />
+                    ) : (
+                      <span className="text-sm text-[#687773]">Belum ada foto</span>
+                    )}
                   </div>
 
+                  {/* DETAIL */}
+                  <div className="flex flex-col gap-4 p-5">
+                    <h3 className="text-xl leading-[1.4] tracking-[-0.3px] text-[#172f2c]">{item.nama}</h3>
 
-                  <div
-                    style={{
-                      fontSize: "20px",
-                      fontWeight: "bold",
-                      color: "#2563eb",
-                      marginBottom: "18px",
-                    }}
-                  >
-                    {formatRupiah(item.harga)}
-                    <span
-                      style={{
-                        fontSize: "13px",
-                        color: "#6b7280",
-                        fontWeight: "normal",
-                      }}
-                    >
-                      {" "}
-                      / hari
-                    </span>
+                    <div className="flex flex-wrap gap-2">
+                      <span className={chipCls}>{item.jenis}</span>
+                      <span className={chipCls}>{item.cc}cc</span>
+                    </div>
+
+                    <p className="flex items-baseline gap-1.5">
+                      <span className="text-[26px] font-semibold leading-[1.2] tracking-[-0.5px] text-[#087f6d]">
+                        {formatRupiah(item.harga)}
+                      </span>
+                      <span className="text-xs text-[#687773]">/ hari</span>
+                    </p>
+
+                    {/* TOMBOL CRUD */}
+                    <div className="flex gap-2.5">
+                      <button
+                        type="button"
+                        onClick={() => mulaiEdit(item)}
+                        className="flex h-[43px] flex-1 items-center justify-center gap-2 rounded-lg bg-[#e7f3ec] text-[13px] font-semibold text-[#087f6d] transition hover:bg-[#d8ecdf]"
+                      >
+                        <Icon name="pencil" className="size-4" />
+                        Edit
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => hapusMotor(item.id, item.nama)}
+                        className="flex h-[43px] flex-1 items-center justify-center gap-2 rounded-lg bg-[#fceae7] text-[13px] font-semibold text-[#a34237] transition hover:bg-[#f8d9d4]"
+                      >
+                        <Icon name="trash-2" className="size-4" />
+                        Hapus
+                      </button>
+                    </div>
                   </div>
+                </article>
+              ))}
+            </div>
+          )}
 
-
-                  {/* BUTTON CRUD */}
-                  <div
-                    style={{
-                      display: "flex",
-                      gap: "10px",
-                    }}
-                  >
-
-                    <button
-                      onClick={() => mulaiEdit(item)}
-                      style={{
-                        flex: 1,
-                        background: "#f59e0b",
-                        color: "white",
-                        border: "none",
-                        padding: "11px",
-                        borderRadius: "8px",
-                        fontWeight: "bold",
-                        cursor: "pointer",
-                      }}
-                    >
-                      ✏️ Edit
-                    </button>
-
-
-                    <button
-                      onClick={() =>
-                        hapusMotor(item.id, item.nama)
-                      }
-                      style={{
-                        flex: 1,
-                        background: "#dc2626",
-                        color: "white",
-                        border: "none",
-                        padding: "11px",
-                        borderRadius: "8px",
-                        fontWeight: "bold",
-                        cursor: "pointer",
-                      }}
-                    >
-                      🗑️ Hapus
-                    </button>
-
-                  </div>
-
-                </div>
-
-              </div>
-
-            ))}
-
-          </div>
-
-        )}
+          {!loading && motor.length > 0 && (
+            <p className="text-xs text-[#687773]">Menampilkan {motor.length} motor</p>
+          )}
+        </section>
 
       </div>
-
-    </main>
+    </AdminShell>
   );
 }
 
 
 // ==============================
-// STYLE
+// STYLE & KOMPONEN KECIL
 // ==============================
 
-const inputStyle = {
-  width: "100%",
-  padding: "13px",
-  border: "1px solid #d1d5db",
-  borderRadius: "8px",
-  color: "#111827",
-  background: "white",
-  boxSizing: "border-box",
-};
+const inputCls =
+  "h-[52px] w-full rounded-lg border border-[#dee5df] bg-white px-[17px] text-sm text-[#172f2c] placeholder:text-[#687773] focus:border-[#087f6d] focus:outline-none focus:ring-2 focus:ring-[#087f6d]/20";
 
-const cardStyle = {
-  background: "white",
-  padding: "40px",
-  borderRadius: "12px",
-  textAlign: "center",
-  color: "#6b7280",
-  boxShadow: "0 3px 12px rgba(0,0,0,0.08)",
-};
+const labelCls = "text-[13px] font-semibold leading-[1.4] text-[#172f2c]";
 
-const badgeStyle = {
-  background: "#eff6ff",
-  color: "#2563eb",
-  padding: "5px 10px",
-  borderRadius: "20px",
-  fontSize: "13px",
-  fontWeight: "bold",
-};
+const chipCls =
+  "rounded-full bg-[#e7f3ec] px-2.5 py-[5px] text-[11px] font-bold leading-4 text-[#087f6d]";
+
+const emptyCls =
+  "rounded-2xl border border-[#dee5df] bg-white p-10 text-center text-sm text-[#687773]";
+
+function Field({ label, children }) {
+  return (
+    <div className="flex min-w-0 flex-col gap-2.5">
+      <span className={labelCls}>{label}</span>
+      {children}
+    </div>
+  );
+}

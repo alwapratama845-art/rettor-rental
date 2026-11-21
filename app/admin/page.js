@@ -1,7 +1,7 @@
-
 "use client";
 
 import { useEffect, useState } from "react";
+import { Icon, AdminShell } from "../components/site";
 
 const DEPOSIT_TETAP = 200000;
 
@@ -9,7 +9,39 @@ export default function AdminPage() {
   const [pesanan, setPesanan] = useState([]);
   const [loading, setLoading] = useState(true);
   const [proses, setProses] = useState(null);
+  const [cari, setCari] = useState("");
+  const [filterStatus, setFilterStatus] = useState("semua");
 
+  // ================= DIALOG DI DALAM HALAMAN =================
+  // Pengganti window.alert / confirm / prompt (tidak didukung di semua browser).
+  const [dialog, setDialog] = useState(null);
+  const [isiDialog, setIsiDialog] = useState("");
+
+  function bukaDialog(opsi) {
+    return new Promise((resolve) => {
+      setIsiDialog("");
+      setDialog({ ...opsi, resolve });
+    });
+  }
+
+  // true / false
+  const mintaKonfirmasi = (pesan) =>
+    bukaDialog({ jenis: "konfirmasi", judul: "Konfirmasi", pesan, tombol: "Lanjutkan" });
+
+  // teks / null (kalau dibatalkan)
+  const mintaIsian = (pesan, judul, tombol = "Simpan") =>
+    bukaDialog({ jenis: "isian", judul, pesan, tombol });
+
+  // pemberitahuan, selesai saat ditutup
+  const beriTahu = (pesan) =>
+    bukaDialog({ jenis: "info", judul: "Pemberitahuan", pesan, tombol: "OK" });
+
+  function tutupDialog(hasil) {
+    if (dialog) dialog.resolve(hasil);
+    setDialog(null);
+  }
+
+  // ================= DATA =================
   async function ambilPesanan() {
     try {
       const response = await fetch("/api/pesanan");
@@ -18,11 +50,11 @@ export default function AdminPage() {
       if (response.ok) {
         setPesanan(data.pesanan || []);
       } else {
-        alert(data.message || "Gagal mengambil data pesanan.");
+        await beriTahu(data.message || "Gagal mengambil data pesanan.");
       }
     } catch (error) {
       console.error(error);
-      alert("Tidak dapat terhubung ke server.");
+      await beriTahu("Tidak dapat terhubung ke server.");
     } finally {
       setLoading(false);
     }
@@ -40,7 +72,7 @@ export default function AdminPage() {
         ? "Apakah kamu yakin ingin menyetujui pesanan ini?"
         : "Apakah kamu yakin ingin menolak pesanan ini?";
 
-    if (!window.confirm(konfirmasi)) return;
+    if (!(await mintaKonfirmasi(konfirmasi))) return;
 
     try {
       setProses(id);
@@ -56,15 +88,15 @@ export default function AdminPage() {
       const data = await response.json();
 
       if (!response.ok) {
-        alert(data.message || "Gagal mengubah status.");
+        await beriTahu(data.message || "Gagal mengubah status.");
         return;
       }
 
-      alert(data.message);
+      await beriTahu(data.message);
       await ambilPesanan();
     } catch (error) {
       console.error(error);
-      alert("Terjadi kesalahan server.");
+      await beriTahu("Terjadi kesalahan server.");
     } finally {
       setProses(null);
     }
@@ -83,7 +115,7 @@ export default function AdminPage() {
       pesan = "Deposit akan ditandai sebagai dipotong sesuai catatan. Lanjutkan?";
     }
 
-    if (!window.confirm(pesan)) return;
+    if (!(await mintaKonfirmasi(pesan))) return;
 
     try {
       setProses(id);
@@ -103,29 +135,31 @@ export default function AdminPage() {
       const data = await response.json();
 
       if (!response.ok) {
-        alert(data.message || "Gagal mengubah deposit.");
+        await beriTahu(data.message || "Gagal mengubah deposit.");
         return;
       }
 
-      alert(data.message);
+      await beriTahu(data.message);
       await ambilPesanan();
     } catch (error) {
       console.error(error);
-      alert("Terjadi kesalahan server.");
+      await beriTahu("Terjadi kesalahan server.");
     } finally {
       setProses(null);
     }
   }
 
-  function potongDeposit(id) {
-    const alasan = window.prompt(
-      "Masukkan alasan pemotongan deposit, misalnya biaya kerusakan motor:"
+  async function potongDeposit(id) {
+    const alasan = await mintaIsian(
+      "Masukkan alasan pemotongan deposit, misalnya biaya kerusakan motor:",
+      "Potong deposit",
+      "Lanjut"
     );
 
     if (alasan === null) return;
 
     if (!alasan.trim()) {
-      alert("Alasan pemotongan wajib diisi.");
+      await beriTahu("Alasan pemotongan wajib diisi.");
       return;
     }
 
@@ -134,34 +168,6 @@ export default function AdminPage() {
 
   function formatRupiah(angka) {
     return `Rp${Number(angka || 0).toLocaleString("id-ID")}`;
-  }
-
-  function warnaStatus(status) {
-    if (status === "disetujui") {
-      return { background: "#dcfce7", color: "#166534" };
-    }
-
-    if (status === "ditolak") {
-      return { background: "#fee2e2", color: "#991b1b" };
-    }
-
-    return { background: "#fef3c7", color: "#92400e" };
-  }
-
-  function warnaDeposit(status) {
-    if (status === "diterima") {
-      return { background: "#dbeafe", color: "#1d4ed8" };
-    }
-
-    if (status === "dikembalikan") {
-      return { background: "#dcfce7", color: "#166534" };
-    }
-
-    if (status === "dipotong") {
-      return { background: "#fee2e2", color: "#991b1b" };
-    }
-
-    return { background: "#fef3c7", color: "#92400e" };
   }
 
   function labelDeposit(status) {
@@ -175,461 +181,271 @@ export default function AdminPage() {
     return labels[status] || "Menunggu";
   }
 
+  const daftar = pesanan.filter((p) => {
+    const q = cari.trim().toLowerCase().replace("#", "");
+    const cocokStatus = filterStatus === "semua" || p.status === filterStatus;
+    const cocokCari =
+      !q ||
+      String(p.nama || "").toLowerCase().includes(q) ||
+      String(p.id).includes(q);
+    return cocokStatus && cocokCari;
+  });
+
+  const filterList = [
+    ["semua", "Semua status"],
+    ["menunggu", "Menunggu"],
+    ["disetujui", "Disetujui"],
+    ["ditolak", "Ditolak"],
+  ];
+
+  const chipPesanan = {
+    menunggu: ["Menunggu konfirmasi", "bg-[#fff3d4] text-[#8a5a12]"],
+    disetujui: ["Disetujui", "bg-[#e7f3ec] text-[#087f6d]"],
+    ditolak: ["Ditolak", "bg-[#fceae7] text-[#a34237]"],
+  };
+
+  const chipDeposit = {
+    menunggu: "bg-[#fff3d4] text-[#8a5a12]",
+    diterima: "bg-[#d7eb95] text-[#172f2c]",
+    dikembalikan: "bg-white text-[#087f6d]",
+    dipotong: "bg-[#fceae7] text-[#a34237]",
+  };
+
   return (
-    <main
-      style={{
-        minHeight: "100vh",
-        background: "#f5f7fb",
-        padding: "30px",
-        fontFamily: "Arial, sans-serif",
-      }}
-    >
-      <div
-        style={{
-          maxWidth: "1200px",
-          margin: "0 auto",
-        }}
-      >
-        {/* HEADER */}
-        <div
-          style={{
-            background: "white",
-            padding: "25px",
-            borderRadius: "15px",
-            boxShadow: "0 3px 12px rgba(0,0,0,0.08)",
-            marginBottom: "25px",
-          }}
-        >
-          <h1
-            style={{
-              margin: 0,
-              color: "#111827",
-              fontSize: "32px",
-            }}
-          >
-            RETTOR ADMIN
-          </h1>
-
-          <p
-            style={{
-              color: "#6b7280",
-              marginTop: "8px",
-              marginBottom: "20px",
-            }}
-          >
-            Dashboard Admin RETTOR RENTAL
-          </p>
-
-          {/* MENU ADMIN */}
-          <div
-            style={{
-              display: "flex",
-              flexWrap: "wrap",
-              gap: "10px",
-            }}
-          >
-            <a
-              href="/admin"
-              style={{
-                background: "#16a34a",
-                color: "white",
-                padding: "12px 18px",
-                borderRadius: "8px",
-                textDecoration: "none",
-                fontWeight: "bold",
-              }}
-            >
-              📋 Kelola Pesanan
-            </a>
-
-            <a
-              href="/admin/motor"
-              style={{
-                background: "#2563eb",
-                color: "white",
-                padding: "12px 18px",
-                borderRadius: "8px",
-                textDecoration: "none",
-                fontWeight: "bold",
-              }}
-            >
-              🏍️ Kelola Motor
-            </a>
-
-            <a
-              href="/admin/motor"
-              style={{
-                background: "#7c3aed",
-                color: "white",
-                padding: "12px 18px",
-                borderRadius: "8px",
-                textDecoration: "none",
-                fontWeight: "bold",
-              }}
-            >
-              ➕ Tambah Motor
-            </a>
-
-            <a
-              href="/"
-              style={{
-                background: "#111827",
-                color: "white",
-                padding: "12px 18px",
-                borderRadius: "8px",
-                textDecoration: "none",
-                fontWeight: "bold",
-              }}
-            >
-              🏠 Website
-            </a>
+    <AdminShell tab="pesanan">
+      <div className="flex flex-col gap-6">
+        {/* JUDUL */}
+        <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
+          <div className="flex flex-col gap-2 leading-[1.45]">
+            <h2 className="text-[26px] font-normal text-[#172f2c]">Kelola Pesanan</h2>
+            <p className="text-sm text-[#687773]">Konfirmasi pesanan dan kelola uang deposit pelanggan.</p>
           </div>
+          <span className="w-fit rounded-full bg-[#e7f3ec] px-[14px] py-2 text-xs font-semibold leading-[1.45] text-[#087f6d]">
+            {daftar.length} pesanan ditampilkan
+          </span>
         </div>
 
-        {/* JUDUL PESANAN */}
-        <div style={{ marginBottom: "20px" }}>
-          <h2 style={{ color: "#111827", marginBottom: "5px" }}>
-            📋 Kelola Pesanan
-          </h2>
+        {/* PENCARIAN DAN STATUS */}
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="relative w-full sm:w-[360px]">
+            <Icon name="search" className="pointer-events-none absolute left-4 top-1/2 size-[18px] -translate-y-1/2 text-[#687773]" />
+            <input
+              value={cari}
+              onChange={(e) => setCari(e.target.value)}
+              placeholder="Cari nama atau nomor pesanan"
+              className="h-12 w-full rounded-lg border border-[#dee5df] bg-white pl-11 pr-4 text-[13px] text-[#172f2c] placeholder:text-[#687773] focus:border-[#087f6d] focus:outline-none focus:ring-2 focus:ring-[#087f6d]/20"
+            />
+          </div>
 
-          <p style={{ color: "#6b7280" }}>
-            Konfirmasi pesanan dan kelola uang deposit pelanggan.
-          </p>
+          {filterList.map(([nilai, label]) => (
+            <button
+              key={nilai}
+              type="button"
+              onClick={() => setFilterStatus(nilai)}
+              className={`rounded-full px-[14px] py-2 text-xs font-semibold leading-[1.45] ${
+                filterStatus === nilai ? "bg-[#087f6d] text-white" : "bg-white text-[#687773] hover:text-[#172f2c]"
+              }`}
+            >
+              {label}
+            </button>
+          ))}
         </div>
 
-        {/* DATA PESANAN */}
+        {/* DAFTAR PESANAN */}
         {loading ? (
-          <div style={kotakKosong}>
-            Memuat data pesanan...
-          </div>
-        ) : pesanan.length === 0 ? (
-          <div style={kotakKosong}>
-            Belum ada pesanan.
+          <div className={kotakKosong}>Memuat data pesanan...</div>
+        ) : daftar.length === 0 ? (
+          <div className={kotakKosong}>
+            {pesanan.length === 0 ? "Belum ada pesanan." : "Tidak ada pesanan yang cocok."}
           </div>
         ) : (
-          <div style={{ display: "grid", gap: "20px" }}>
-            {pesanan.map((item) => {
-              const statusDeposit = item.status_deposit || "menunggu";
-              const jumlahDeposit = Number(
-                item.jumlah_deposit ?? DEPOSIT_TETAP
-              );
+          daftar.map((item) => {
+            const statusDeposit = item.status_deposit || "menunggu";
+            const jumlahDeposit = Number(item.jumlah_deposit ?? DEPOSIT_TETAP);
+            const [labelStatus, kelasStatus] = chipPesanan[item.status] || chipPesanan.menunggu;
 
-              return (
-                <div
-                  key={item.id}
-                  style={{
-                    background: "white",
-                    padding: "25px",
-                    borderRadius: "12px",
-                    boxShadow: "0 3px 12px rgba(0,0,0,0.08)",
-                  }}
-                >
-                  {/* PESANAN HEADER */}
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      flexWrap: "wrap",
-                      marginBottom: "20px",
-                      gap: "10px",
-                    }}
-                  >
-                    <h2 style={{ margin: 0, color: "#111827" }}>
-                      Pesanan #{item.id}
-                    </h2>
+            return (
+              <div key={item.id} className="flex flex-col gap-6 rounded-2xl border border-[#dee5df] bg-white p-7">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <p className="text-xl font-semibold leading-[1.45] text-[#172f2c]">Pesanan #{item.id}</p>
+                  <span className={`rounded-full px-[14px] py-2 text-xs font-semibold leading-[1.45] ${kelasStatus}`}>
+                    {labelStatus}
+                  </span>
+                </div>
 
-                    <span
-                      style={{
-                        padding: "7px 14px",
-                        borderRadius: "20px",
-                        fontWeight: "bold",
-                        ...warnaStatus(item.status),
-                      }}
-                    >
-                      {item.status}
+                <div className="grid gap-x-6 gap-y-[22px] sm:grid-cols-2 lg:grid-cols-4">
+                  <Info label="Nama" value={item.nama} />
+                  <Info label="Nomor HP" value={item.telepon} />
+                  <Info label="Motor" value={item.motor} />
+                  <Info label="Harga / Hari" value={formatRupiah(item.harga_per_hari)} />
+
+                  <Info label="Tanggal Mulai" value={item.tanggal_mulai} kecil />
+                  <Info label="Tanggal Selesai" value={item.tanggal_selesai} kecil />
+                  <Info label="Tanggal Kembali" value={item.tanggal_kembali || "Belum dikembalikan"} kecil />
+                  <Info label="Lama Sewa" value={`${item.jumlah_hari || 0} hari`} />
+
+                  <Info label="Diskon" value={`${item.persen_diskon || 0}%`} />
+                  <Info label="Potongan Harga" value={formatRupiah(item.jumlah_diskon)} />
+                  <Info label="Keterlambatan" value={`${item.hari_terlambat || 0} hari`} />
+                  <Info label="Denda" value={formatRupiah(item.denda)} />
+                </div>
+
+                <div className="flex items-center justify-between gap-3 rounded-[10px] bg-[#f6f3ea] px-5 py-[18px]">
+                  <p className="text-sm font-semibold text-[#172f2c]">Total Harga Sewa</p>
+                  <p className="text-2xl font-bold text-[#087f6d]">{formatRupiah(item.total_harga)}</p>
+                </div>
+
+                {/* DEPOSIT */}
+                <div className="flex flex-col items-start gap-3 rounded-xl bg-[#e7f3ec] p-[22px]">
+                  <div className="flex w-full items-center justify-between gap-3">
+                    <p className="text-base font-semibold leading-[1.45] text-[#172f2c]">Deposit Jaminan</p>
+                    <span className={`rounded-full px-[14px] py-2 text-xs font-semibold leading-[1.45] ${chipDeposit[statusDeposit] || chipDeposit.menunggu}`}>
+                      {labelDeposit(statusDeposit)}
                     </span>
                   </div>
 
-                  {/* DETAIL PESANAN */}
-                  <div
-                    style={{
-                      display: "grid",
-                      gridTemplateColumns:
-                        "repeat(auto-fit, minmax(220px, 1fr))",
-                      gap: "15px",
-                    }}
-                  >
-                    <Info label="Nama" value={item.nama} />
-                    <Info label="Nomor HP" value={item.telepon} />
-                    <Info label="Motor" value={item.motor} />
+                  <p className="text-2xl font-bold leading-[1.45] text-[#087f6d]">{formatRupiah(jumlahDeposit)}</p>
+                  <p className="text-sm leading-[1.45] text-[#687773]">Deposit tetap yang menjadi jaminan selama penyewaan.</p>
 
-                    <Info
-                      label="Harga / Hari"
-                      value={formatRupiah(item.harga_per_hari)}
-                    />
-
-                    <Info label="Tanggal Mulai" value={item.tanggal_mulai} />
-                    <Info label="Tanggal Selesai" value={item.tanggal_selesai} />
-                    <Info label="Tanggal Kembali" value={item.tanggal_kembali} />
-
-                    <Info
-                      label="Lama Sewa"
-                      value={`${item.jumlah_hari || 0} hari`}
-                    />
-
-                    <Info
-                      label="Diskon"
-                      value={`${item.persen_diskon || 0}%`}
-                    />
-
-                    <Info
-                      label="Potongan Harga"
-                      value={formatRupiah(item.jumlah_diskon)}
-                    />
-
-                    <Info
-                      label="Keterlambatan"
-                      value={`${item.hari_terlambat || 0} hari`}
-                    />
-
-                    <Info label="Denda" value={formatRupiah(item.denda)} />
-                  </div>
-
-                  {/* TOTAL HARGA SEWA */}
-                  <div
-                    style={{
-                      marginTop: "20px",
-                      padding: "15px",
-                      background: "#f3f4f6",
-                      borderRadius: "8px",
-                    }}
-                  >
-                    <strong style={{ color: "#111827" }}>
-                      Total Harga Sewa:
-                    </strong>
-
-                    <span
-                      style={{
-                        marginLeft: "10px",
-                        fontSize: "20px",
-                        fontWeight: "bold",
-                        color: "#2563eb",
-                      }}
-                    >
-                      {formatRupiah(item.total_harga)}
-                    </span>
-                  </div>
-
-                  {/* PENGELOLAAN DEPOSIT */}
-                  <div
-                    style={{
-                      marginTop: "20px",
-                      padding: "20px",
-                      background: "#eff6ff",
-                      border: "1px solid #bfdbfe",
-                      borderRadius: "10px",
-                    }}
-                  >
-                    <div
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                        flexWrap: "wrap",
-                        gap: "10px",
-                      }}
-                    >
-                      <h3
-                        style={{
-                          margin: 0,
-                          color: "#1e3a8a",
-                          fontSize: "19px",
-                        }}
-                      >
-                        💰 Deposit Jaminan
-                      </h3>
-
-                      <span
-                        style={{
-                          padding: "7px 13px",
-                          borderRadius: "20px",
-                          fontWeight: "bold",
-                          ...warnaDeposit(statusDeposit),
-                        }}
-                      >
-                        {labelDeposit(statusDeposit)}
-                      </span>
+                  {item.catatan_deposit && (
+                    <div className="w-full rounded-lg bg-white p-3 text-sm text-[#172f2c]">
+                      <strong>Catatan Admin:</strong>
+                      <p className="mt-1.5">{item.catatan_deposit}</p>
                     </div>
+                  )}
 
-                    <p
-                      style={{
-                        color: "#1e40af",
-                        fontSize: "22px",
-                        fontWeight: "bold",
-                        margin: "12px 0",
-                      }}
+                  {statusDeposit === "menunggu" && (
+                    <button
+                      disabled={proses !== null}
+                      onClick={() => ubahStatusDeposit(item.id, "diterima")}
+                      className={btnHijau}
                     >
-                      {formatRupiah(jumlahDeposit)}
-                    </p>
+                      Terima Deposit
+                    </button>
+                  )}
 
-                    <p style={{ color: "#374151", margin: "5px 0" }}>
-                      Deposit tetap yang menjadi jaminan selama penyewaan.
-                    </p>
-
-                    {item.catatan_deposit && (
-                      <div
-                        style={{
-                          marginTop: "12px",
-                          padding: "12px",
-                          background: "white",
-                          borderRadius: "7px",
-                          color: "#374151",
-                        }}
-                      >
-                        <strong>Catatan Admin:</strong>
-                        <p style={{ margin: "6px 0 0" }}>
-                          {item.catatan_deposit}
-                        </p>
-                      </div>
-                    )}
-
-                    {/* TOMBOL DEPOSIT */}
-                    <div
-                      style={{
-                        display: "flex",
-                        flexWrap: "wrap",
-                        gap: "10px",
-                        marginTop: "18px",
-                      }}
-                    >
-                      {statusDeposit === "menunggu" && (
-                        <button
-                          disabled={proses !== null}
-                          onClick={() =>
-                            ubahStatusDeposit(item.id, "diterima")
-                          }
-                          style={tombol("#2563eb", proses === item.id)}
-                        >
-                          ✓ Terima Deposit
-                        </button>
-                      )}
-
-                      {statusDeposit === "diterima" && (
-                        <>
-                          <button
-                            disabled={proses !== null}
-                            onClick={() =>
-                              ubahStatusDeposit(item.id, "dikembalikan")
-                            }
-                            style={tombol("#16a34a", proses === item.id)}
-                          >
-                            ↩ Kembalikan Deposit
-                          </button>
-
-                          <button
-                            disabled={proses !== null}
-                            onClick={() => potongDeposit(item.id)}
-                            style={tombol("#dc2626", proses === item.id)}
-                          >
-                            ✕ Potong Deposit
-                          </button>
-                        </>
-                      )}
-
-                      {statusDeposit === "dikembalikan" && (
-                        <p style={{ color: "#166534", fontWeight: "bold" }}>
-                          ✓ Deposit sudah dikembalikan kepada pelanggan.
-                        </p>
-                      )}
-
-                      {statusDeposit === "dipotong" && (
-                        <p style={{ color: "#991b1b", fontWeight: "bold" }}>
-                          Deposit sudah ditandai dipotong.
-                        </p>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* TOMBOL STATUS PESANAN */}
-                  {item.status === "menunggu" && (
-                    <div
-                      style={{
-                        display: "flex",
-                        flexWrap: "wrap",
-                        gap: "10px",
-                        marginTop: "20px",
-                      }}
-                    >
+                  {statusDeposit === "diterima" && (
+                    <div className="flex flex-wrap gap-3">
                       <button
                         disabled={proses !== null}
-                        onClick={() => ubahStatus(item.id, "disetujui")}
-                        style={tombol("#16a34a", proses === item.id)}
+                        onClick={() => ubahStatusDeposit(item.id, "dikembalikan")}
+                        className={btnHijau}
                       >
-                        ✓ Konfirmasi Pesanan
+                        Kembalikan Deposit
                       </button>
-
                       <button
                         disabled={proses !== null}
-                        onClick={() => ubahStatus(item.id, "ditolak")}
-                        style={tombol("#dc2626", proses === item.id)}
+                        onClick={() => potongDeposit(item.id)}
+                        className={btnMerah}
                       >
-                        ✕ Tolak Pesanan
+                        Potong Deposit
                       </button>
                     </div>
                   )}
+
+                  {statusDeposit === "dikembalikan" && (
+                    <p className="text-sm font-semibold leading-[1.45] text-[#087f6d]">
+                      ✓ Deposit sudah dikembalikan kepada pelanggan.
+                    </p>
+                  )}
+
+                  {statusDeposit === "dipotong" && (
+                    <p className="text-sm font-semibold leading-[1.45] text-[#a34237]">
+                      Deposit sudah ditandai dipotong.
+                    </p>
+                  )}
                 </div>
-              );
-            })}
-          </div>
+
+                {item.status === "menunggu" && (
+                  <div className="flex flex-wrap gap-3">
+                    <button
+                      disabled={proses !== null}
+                      onClick={() => ubahStatus(item.id, "disetujui")}
+                      className={btnHijau}
+                    >
+                      Konfirmasi Pesanan
+                    </button>
+                    <button
+                      disabled={proses !== null}
+                      onClick={() => ubahStatus(item.id, "ditolak")}
+                      className={btnMerah}
+                    >
+                      Tolak Pesanan
+                    </button>
+                  </div>
+                )}
+              </div>
+            );
+          })
         )}
+
+        <div className="flex flex-col justify-between gap-1 text-xs leading-[1.45] text-[#687773] sm:flex-row">
+          <p>
+            Menampilkan {daftar.length} pesanan
+            {daftar.length > 0 && ` • ${daftar.slice(0, 6).map((p) => `#${p.id}`).join(", ")}${daftar.length > 6 ? ", ..." : ""}`}
+          </p>
+          <p>Tanggal ditampilkan dalam format asli (UTC).</p>
+        </div>
       </div>
-    </main>
+
+      {/* ================= DIALOG ================= */}
+      {dialog && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <div className="flex w-full max-w-[440px] flex-col gap-4 rounded-2xl bg-white p-6">
+            <p className="text-[20px] tracking-[-0.5px] text-[#172f2c]">{dialog.judul}</p>
+            <p className="text-sm leading-[1.55] text-[#687773]">{dialog.pesan}</p>
+
+            {dialog.jenis === "isian" && (
+              <textarea
+                autoFocus
+                value={isiDialog}
+                onChange={(e) => setIsiDialog(e.target.value)}
+                rows={3}
+                className="w-full rounded-lg border border-[#dee5df] p-3 text-sm text-[#172f2c] outline-none focus:border-[#087f6d]"
+              />
+            )}
+
+            <div className="flex justify-end gap-3">
+              {dialog.jenis !== "info" && (
+                <button
+                  type="button"
+                  onClick={() => tutupDialog(dialog.jenis === "isian" ? null : false)}
+                  className={`${btnDasar} border border-[#dee5df] bg-white text-[#172f2c]`}
+                >
+                  Batal
+                </button>
+              )}
+              <button
+                type="button"
+                disabled={dialog.jenis === "isian" && !isiDialog.trim()}
+                onClick={() => tutupDialog(dialog.jenis === "isian" ? isiDialog : true)}
+                className={dialog.jenis === "isian" ? btnMerah : btnHijau}
+              >
+                {dialog.tombol}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </AdminShell>
   );
 }
 
-function Info({ label, value }) {
-  return (
-    <div>
-      <div
-        style={{
-          fontSize: "13px",
-          color: "#6b7280",
-          marginBottom: "4px",
-        }}
-      >
-        {label}
-      </div>
+const kotakKosong =
+  "rounded-2xl border border-[#dee5df] bg-white p-10 text-center text-sm text-[#687773]";
 
-      <div
-        style={{
-          fontWeight: "bold",
-          color: "#111827",
-        }}
-      >
+const btnDasar =
+  "flex h-12 items-center justify-center rounded-lg px-[22px] text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-60";
+const btnHijau = `${btnDasar} bg-[#087f6d] text-white hover:bg-[#066b5c]`;
+const btnMerah = `${btnDasar} border border-[#ebcdc6] bg-[#fceae7] text-[#a34237] hover:bg-[#f8ddd8]`;
+
+function Info({ label, value, kecil }) {
+  return (
+    <div className="flex min-w-0 flex-col gap-[7px] leading-[1.45]">
+      <p className="text-xs text-[#687773]">{label}</p>
+      <p className={`break-words font-semibold text-[#172f2c] ${kecil ? "text-xs" : "text-sm"}`}>
         {value || "-"}
-      </div>
+      </p>
     </div>
   );
-}
-
-const kotakKosong = {
-  background: "white",
-  padding: "40px",
-  borderRadius: "12px",
-  textAlign: "center",
-  color: "#666",
-};
-
-function tombol(background, disabled) {
-  return {
-    background,
-    color: "white",
-    border: "none",
-    padding: "12px 18px",
-    borderRadius: "8px",
-    cursor: disabled ? "not-allowed" : "pointer",
-    fontWeight: "bold",
-    opacity: disabled ? 0.6 : 1,
-  };
 }

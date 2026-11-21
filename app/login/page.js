@@ -1,6 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
+import AuthShell from "../components/AuthShell";
+import { TextField, PasswordField } from "../components/AuthFields";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -53,308 +56,48 @@ export default function LoginPage() {
   };
 
   return (
-    <main
-      style={{
-        minHeight: "100vh",
-        background: "#f5f7fb",
-        fontFamily: "Arial, sans-serif",
-      }}
-    >
-
-      {/* NAVBAR */}
-      <nav
-        style={{
-          background: "white",
-          borderBottom: "1px solid #e5e7eb",
-        }}
-      >
-        <div
-          style={{
-            maxWidth: "1200px",
-            margin: "0 auto",
-            padding: "18px 25px",
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
-        >
-
-          <a
-            href="/"
-            style={{
-              textDecoration: "none",
-              fontSize: "28px",
-              fontWeight: "900",
-              color: "#2563eb",
-            }}
-          >
-            RETTOR
-          </a>
-
-          <div
-            style={{
-              display: "flex",
-              gap: "25px",
-            }}
-          >
-
-            <a
-              href="/"
-              style={{
-                textDecoration: "none",
-                color: "#374151",
-                fontWeight: "600",
-              }}
-            >
-              Beranda
-            </a>
-
-            <a
-              href="/motor"
-              style={{
-                textDecoration: "none",
-                color: "#374151",
-                fontWeight: "600",
-              }}
-            >
-              Motor
-            </a>
-
-            <a
-              href="/login"
-              style={{
-                textDecoration: "none",
-                color: "#2563eb",
-                fontWeight: "bold",
-              }}
-            >
-              Login
-            </a>
-
-            <a
-              href="/register"
-              style={{
-                textDecoration: "none",
-                color: "#374151",
-                fontWeight: "600",
-              }}
-            >
-              Register
-            </a>
-
-          </div>
-        </div>
-      </nav>
-
-
-      {/* LOGIN */}
-      <section
-        style={{
-          minHeight: "calc(100vh - 76px)",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          padding: "40px 20px",
-        }}
-      >
-
-        <div
-          style={{
-            width: "100%",
-            maxWidth: "430px",
-            background: "white",
-            padding: "35px",
-            borderRadius: "18px",
-            boxShadow: "0 5px 25px rgba(0,0,0,0.08)",
-          }}
-        >
-
-          {/* JUDUL */}
-          <div
-            style={{
-              textAlign: "center",
-              marginBottom: "30px",
-            }}
-          >
-
-            <div
-              style={{
-                width: "70px",
-                height: "70px",
-                margin: "0 auto 18px",
-                borderRadius: "50%",
-                background: "#eff6ff",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontSize: "35px",
-              }}
-            >
-              🏍️
-            </div>
-
-            <h1
-              style={{
-                margin: 0,
-                color: "#111827",
-                fontSize: "30px",
-              }}
-            >
-              Selamat Datang
-            </h1>
-
-            <p
-              style={{
-                color: "#6b7280",
-                marginTop: "8px",
-              }}
-            >
-              Login ke akun RETTOR RENTAL
-            </p>
-
-          </div>
-
-
-          {/* FORM */}
-          <form
-            onSubmit={handleLogin}
-          >
-
-            {/* EMAIL */}
-            <div
-              style={{
-                marginBottom: "20px",
-              }}
-            >
-
-              <label
-                style={{
-                  display: "block",
-                  color: "#111827",
-                  fontWeight: "bold",
-                  marginBottom: "8px",
-                }}
-              >
-                Email
-              </label>
-
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="Masukkan email"
-                required
-                style={{
-                  width: "100%",
-                  padding: "14px",
-                  border: "1px solid #d1d5db",
-                  borderRadius: "9px",
-                  color: "#111827",
-                  background: "white",
-                  boxSizing: "border-box",
-                  outline: "none",
-                }}
-              />
-
-            </div>
-
-
-            {/* PASSWORD */}
-            <div
-              style={{
-                marginBottom: "25px",
-              }}
-            >
-
-              <label
-                style={{
-                  display: "block",
-                  color: "#111827",
-                  fontWeight: "bold",
-                  marginBottom: "8px",
-                }}
-              >
-                Password
-              </label>
-
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Masukkan password"
-                required
-                style={{
-                  width: "100%",
-                  padding: "14px",
-                  border: "1px solid #d1d5db",
-                  borderRadius: "9px",
-                  color: "#111827",
-                  background: "white",
-                  boxSizing: "border-box",
-                  outline: "none",
-                }}
-              />
-
-            </div>
-
-
-            {/* BUTTON LOGIN */}
-            <button
-              type="submit"
-              style={{
-                width: "100%",
-                padding: "14px",
-                border: "none",
-                borderRadius: "9px",
-                background: "#2563eb",
-                color: "white",
-                fontSize: "16px",
-                fontWeight: "bold",
-                cursor: "pointer",
-              }}
-            >
-              Login
-            </button>
-
-          </form>
-
-
-          {/* REGISTER */}
-          <div
-            style={{
-              textAlign: "center",
-              marginTop: "25px",
-              paddingTop: "20px",
-              borderTop: "1px solid #e5e7eb",
-            }}
-          >
-
-            <p
-              style={{
-                color: "#6b7280",
-                marginBottom: "8px",
-              }}
-            >
-              Belum punya akun?
-            </p>
-
-            <a
-              href="/register"
-              style={{
-                color: "#2563eb",
-                textDecoration: "none",
-                fontWeight: "bold",
-              }}
-            >
-              Daftar Sekarang
-            </a>
-
-          </div>
-
+    <AuthShell judulKiri={["Kotanya baru.", "Bebas jalannya."]}>
+      <div className="flex flex-col gap-8">
+        <div className="flex flex-col gap-[10px]">
+          <p className="text-[11px] font-semibold leading-normal text-[#087f6d]">AKUN RETTOR</p>
+          <h1 className="text-4xl font-normal leading-[1.2] text-[#172f2c]">Selamat datang kembali.</h1>
+          <p className="text-sm leading-normal text-[#687773]">Login ke akun Rettor dan lanjutkan perjalananmu.</p>
         </div>
 
-      </section>
+        <form onSubmit={handleLogin} className="flex flex-col gap-8">
+          <div className="flex flex-col gap-6">
+            <TextField
+              label="Email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Masukkan email"
+              required
+            />
+            <PasswordField
+              label="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Masukkan password"
+              required
+            />
+          </div>
+          <button
+            type="submit"
+            className="h-[52px] w-full rounded-lg bg-[#d7eb95] text-sm font-semibold text-[#172f2c] transition hover:bg-[#cfe585]"
+          >
+            Login
+          </button>
+        </form>
 
-    </main>
+        <div className="flex flex-col gap-6">
+          <div className="h-px w-full bg-[#dee6df]" />
+          <p className="flex justify-center gap-1.5 text-sm leading-normal">
+            <span className="text-[#687773]">Belum punya akun?</span>
+            <Link href="/register" className="font-semibold text-[#087f6d]">Daftar Sekarang</Link>
+          </p>
+        </div>
+      </div>
+    </AuthShell>
   );
-}
+};

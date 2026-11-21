@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
+import { inter, Icon, SiteNav, SiteFooter } from "../components/site";
 
 export default function ProfilPage() {
   const [user, setUser] = useState(null);
@@ -35,486 +37,126 @@ export default function ProfilPage() {
 
   if (!user) {
     return (
-      <main
-        style={{
-          minHeight: "100vh",
-          background: "#F0F7FF",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          fontFamily: "Arial, sans-serif",
-          color: "#111827",
-        }}
-      >
-        <h2>Memuat profil...</h2>
-      </main>
+      <div className={`${inter.className} flex min-h-screen items-center justify-center bg-white`}>
+        <p className="text-sm text-[#687773]">Memuat profil...</p>
+      </div>
     );
   }
 
+  const inisial = user.nama ? user.nama.charAt(0).toUpperCase() : "U";
+
   return (
-    <main
-      style={{
-        minHeight: "100vh",
-        background: "#F0F7FF",
-        fontFamily: "Arial, sans-serif",
-        color: "#111827",
-      }}
-    >
-      {/* NAVBAR */}
-      <nav
-        style={{
-          background: "white",
-          borderBottom: "1px solid #e5e7eb",
-          position: "sticky",
-          top: 0,
-          zIndex: 50,
-        }}
-      >
-        <div
-          style={{
-            maxWidth: "1200px",
-            margin: "0 auto",
-            padding: "18px 25px",
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            flexWrap: "wrap",
-            gap: "15px",
-          }}
-        >
-          <a
-            href="/"
-            style={{
-              textDecoration: "none",
-              fontSize: "28px",
-              fontWeight: "900",
-              color: "#0F4CDB",
-              letterSpacing: "1px",
-            }}
-          >
-            RETTOR
-          </a>
+    <div className={`${inter.className} flex min-h-screen flex-col bg-white`}>
+      <SiteNav nama={user.nama} login aktif="profil" />
 
-          <div
-            style={{
-              display: "flex",
-              gap: "25px",
-              alignItems: "center",
-              flexWrap: "wrap",
-            }}
-          >
-            <a
-              href="/"
-              style={{
-                textDecoration: "none",
-                color: "#374151",
-                fontWeight: "600",
-              }}
-            >
-              Beranda
-            </a>
+      <main className="flex-1 leading-[normal]">
+        {/* ================= HERO ================= */}
+        <HeroHalaman baris1="Profil" baris2="Saya" />
 
-            <a
-              href="/motor"
-              style={{
-                textDecoration: "none",
-                color: "#374151",
-                fontWeight: "600",
-              }}
-            >
-              Motor
-            </a>
-
-            <a
-              href="/pesanan"
-              style={{
-                textDecoration: "none",
-                color: "#374151",
-                fontWeight: "600",
-              }}
-            >
-              Pesanan Saya
-            </a>
-
-            <a
-              href="/profil"
-              style={{
-                textDecoration: "none",
-                color: "#0F4CDB",
-                fontWeight: "800",
-              }}
-            >
-              Profil
-            </a>
-          </div>
-        </div>
-      </nav>
-
-      {/* HERO PROFIL */}
-      <section
-        style={{
-          minHeight: "330px",
-          background:
-            "linear-gradient(90deg, rgba(15,76,219,0.96) 0%, rgba(15,76,219,0.82) 45%, rgba(15,76,219,0.55) 75%, rgba(15,76,219,0.35) 100%), url('/rettor-pesanan-bg.png')",
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          display: "flex",
-          alignItems: "center",
-        }}
-      >
-        <div
-          style={{
-            maxWidth: "1200px",
-            width: "100%",
-            margin: "0 auto",
-            padding: "60px 25px",
-            color: "white",
-          }}
-        >
-          <p
-            style={{
-              margin: "0 0 10px",
-              fontSize: "15px",
-              fontWeight: "bold",
-              letterSpacing: "2px",
-              textTransform: "uppercase",
-            }}
-          >
-            Akun RETTOR
-          </p>
-
-          <h1
-            style={{
-              margin: 0,
-              fontSize: "42px",
-              fontWeight: "900",
-            }}
-          >
-            Profil Saya
-          </h1>
-
-          <p
-            style={{
-              marginTop: "14px",
-              fontSize: "17px",
-              lineHeight: "1.7",
-              maxWidth: "600px",
-              color: "#eaf2ff",
-            }}
-          >
-            Kelola informasi akun dan lihat aktivitas penyewaan motor kamu
-            di RETTOR RENTAL.
-          </p>
-        </div>
-      </section>
-
-      {/* KONTEN PROFIL */}
-      <section
-        style={{
-          maxWidth: "900px",
-          margin: "0 auto",
-          padding: "55px 25px 70px",
-        }}
-      >
-        {/* CARD UTAMA */}
-        <div
-          style={{
-            background: "white",
-            borderRadius: "24px",
-            padding: "40px",
-            boxShadow: "0 10px 35px rgba(15,76,219,0.10)",
-            border: "1px solid #e5eefc",
-          }}
-        >
-          {/* HEADER PROFIL */}
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "25px",
-              marginBottom: "35px",
-              paddingBottom: "30px",
-              borderBottom: "1px solid #e5e7eb",
-              flexWrap: "wrap",
-            }}
-          >
-            {/* AVATAR */}
-            <div
-              style={{
-                width: "105px",
-                height: "105px",
-                minWidth: "105px",
-                borderRadius: "50%",
-                background:
-                  "linear-gradient(135deg, #0F4CDB 0%, #2563eb 100%)",
-                color: "white",
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                fontSize: "42px",
-                fontWeight: "900",
-                boxShadow: "0 8px 20px rgba(15,76,219,0.25)",
-              }}
-            >
-              {user.nama
-                ? user.nama.charAt(0).toUpperCase()
-                : "U"}
-            </div>
-
-            <div>
-              <p
-                style={{
-                  margin: "0 0 5px",
-                  color: "#6b7280",
-                  fontSize: "14px",
-                }}
-              >
-                Selamat datang,
-              </p>
-
-              <h2
-                style={{
-                  margin: 0,
-                  fontSize: "28px",
-                  fontWeight: "800",
-                  color: "#111827",
-                }}
-              >
-                {user.nama}
-              </h2>
-
-              <p
-                style={{
-                  margin: "8px 0 0",
-                  color: "#6b7280",
-                }}
-              >
-                {user.email}
-              </p>
-            </div>
-          </div>
-
-          {/* INFORMASI AKUN */}
-          <h3
-            style={{
-              margin: "0 0 10px",
-              fontSize: "20px",
-              color: "#111827",
-            }}
-          >
-            Informasi Akun
-          </h3>
-
-          <p
-            style={{
-              margin: "0 0 20px",
-              color: "#6b7280",
-              fontSize: "14px",
-            }}
-          >
-            Berikut informasi akun yang terdaftar di RETTOR.
-          </p>
-
-          {/* NAMA */}
-          <div
-            style={{
-              padding: "18px 20px",
-              marginBottom: "12px",
-              background: "#F8FAFC",
-              borderRadius: "12px",
-              border: "1px solid #e5e7eb",
-            }}
-          >
-            <p
-              style={{
-                margin: "0 0 5px",
-                color: "#6b7280",
-                fontSize: "13px",
-                fontWeight: "600",
-              }}
-            >
-              Nama Lengkap
-            </p>
-
-            <strong
-              style={{
-                color: "#111827",
-                fontSize: "17px",
-              }}
-            >
-              {user.nama}
-            </strong>
-          </div>
-
-          {/* EMAIL */}
-          <div
-            style={{
-              padding: "18px 20px",
-              marginBottom: "12px",
-              background: "#F8FAFC",
-              borderRadius: "12px",
-              border: "1px solid #e5e7eb",
-            }}
-          >
-            <p
-              style={{
-                margin: "0 0 5px",
-                color: "#6b7280",
-                fontSize: "13px",
-                fontWeight: "600",
-              }}
-            >
-              Email
-            </p>
-
-            <strong
-              style={{
-                color: "#111827",
-                fontSize: "17px",
-              }}
-            >
-              {user.email}
-            </strong>
-          </div>
-
-          {/* ROLE */}
-          <div
-            style={{
-              padding: "18px 20px",
-              marginBottom: "30px",
-              background: "#F8FAFC",
-              borderRadius: "12px",
-              border: "1px solid #e5e7eb",
-            }}
-          >
-            <p
-              style={{
-                margin: "0 0 8px",
-                color: "#6b7280",
-                fontSize: "13px",
-                fontWeight: "600",
-              }}
-            >
-              Status Akun
-            </p>
-
-            <span
-              style={{
-                display: "inline-block",
-                background: "#DCFCE7",
-                color: "#15803D",
-                padding: "7px 15px",
-                borderRadius: "20px",
-                fontWeight: "bold",
-                fontSize: "13px",
-                textTransform: "capitalize",
-              }}
-            >
-              {user.role || "user"}
+        {/* ================= KONTEN ================= */}
+        <section className="flex flex-col gap-10 px-6 pb-20 pt-[72px] lg:flex-row lg:items-start lg:gap-16 lg:px-20">
+          {/* KARTU IDENTITAS */}
+          <div className="flex flex-col gap-8 rounded-2xl bg-[#103f37] p-8 lg:min-h-[381px] lg:w-[355px] lg:shrink-0">
+            <span className="flex size-[88px] items-center justify-center rounded-full bg-[#e7f3ec] text-[30px] font-semibold text-[#087f6d]">
+              {inisial}
             </span>
-          </div>
 
-          {/* TOMBOL */}
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "1fr 1fr",
-              gap: "12px",
-            }}
-          >
-            <a
-              href="/pesanan"
-              style={{
-                display: "block",
-                textAlign: "center",
-                padding: "15px",
-                borderRadius: "10px",
-                background: "#EFF6FF",
-                color: "#0F4CDB",
-                textDecoration: "none",
-                fontWeight: "bold",
-                border: "1px solid #DBEAFE",
-              }}
-            >
-              Lihat Pesanan Saya
-            </a>
-
-            <a
-              href="/motor"
-              style={{
-                display: "block",
-                textAlign: "center",
-                padding: "15px",
-                borderRadius: "10px",
-                background: "#0F4CDB",
-                color: "white",
-                textDecoration: "none",
-                fontWeight: "bold",
-                boxShadow: "0 5px 15px rgba(15,76,219,0.20)",
-              }}
-            >
-              Sewa Motor
-            </a>
+            <div className="flex min-w-0 flex-col gap-3">
+              <p className="text-[13px] text-[#e7f3ec]">Selamat datang,</p>
+              <p className="break-words text-[24px] font-semibold leading-[1.2] tracking-[-0.5px] text-white">
+                {user.nama}
+              </p>
+              <p className="break-all text-xs text-[#e7f3ec]">{user.email}</p>
+            </div>
 
             <button
+              type="button"
               onClick={handleLogout}
-              style={{
-                gridColumn: "1 / -1",
-                width: "100%",
-                padding: "15px",
-                borderRadius: "10px",
-                border: "1px solid #FECACA",
-                background: "#FEF2F2",
-                color: "#DC2626",
-                fontWeight: "bold",
-                fontSize: "15px",
-                cursor: "pointer",
-              }}
+              className="mt-auto flex h-12 w-full cursor-pointer items-center justify-center rounded-lg border border-white/25 text-sm font-semibold text-white"
             >
               Logout
             </button>
           </div>
+
+          {/* INFORMASI AKUN */}
+          <div className="flex min-w-0 flex-1 flex-col">
+            <h2 className="text-[26px] font-semibold leading-[1.2] tracking-[-0.8px] text-[#172f2c]">
+              Informasi Akun
+            </h2>
+            <p className="mt-3 text-[13px] text-[#687773]">Berikut informasi akun yang terdaftar di Rettor.</p>
+
+            <div className="mt-6 flex flex-col">
+              <Baris label="Nama Lengkap">
+                <span className="text-sm font-semibold text-[#172f2c]">{user.nama}</span>
+              </Baris>
+              <Baris label="Email">
+                <span className="break-all text-sm font-semibold text-[#172f2c]">{user.email}</span>
+              </Baris>
+              <Baris label="Status Akun">
+                <span className="inline-block rounded-full bg-[#e7f3ec] px-3 py-1 text-[11px] font-semibold capitalize text-[#087f6d]">
+                  {user.role || "user"}
+                </span>
+              </Baris>
+            </div>
+
+            <div className="mt-10 flex flex-col gap-4 sm:flex-row">
+              <Link
+                href="/pesanan"
+                className="flex h-12 flex-1 items-center justify-center rounded-lg border border-[#dee5df] bg-white text-sm font-semibold text-[#172f2c]"
+              >
+                Lihat Pesanan Saya
+              </Link>
+              <Link
+                href="/motor"
+                className="flex h-12 flex-1 items-center justify-center rounded-lg bg-[#d7eb95] text-sm font-semibold text-[#172f2c]"
+              >
+                Sewa Motor
+              </Link>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <SiteFooter />
+    </div>
+  );
+}
+
+function Baris({ label, children }) {
+  return (
+    <div className="flex flex-col gap-2 border-b border-[#dee5df] py-5 sm:flex-row sm:items-center sm:gap-0">
+      <p className="text-[13px] text-[#687773] sm:w-[250px] sm:shrink-0">{label}</p>
+      <div className="min-w-0">{children}</div>
+    </div>
+  );
+}
+
+// Hero krem: judul di kiri, foto di kanan (sama seperti Beranda).
+function HeroHalaman({ baris1, baris2 }) {
+  return (
+    <section className="flex flex-col bg-[#f6f3ea] px-6 pb-8 lg:h-[330px] lg:flex-row lg:px-20 lg:pb-0">
+      <div className="flex flex-col items-start gap-6 pb-8 pt-[52px] lg:w-[308px] lg:shrink-0 lg:pb-0">
+        <div className="flex items-center gap-2">
+          <span className="size-[7px] rounded-full bg-[#087f6d]" />
+          <p className="text-xs font-bold tracking-[1.5px] text-[#087f6d]">DKI Jakarta</p>
         </div>
-      </section>
 
-      {/* FOOTER */}
-      <footer
-        style={{
-          background: "#0B1220",
-          color: "white",
-          textAlign: "center",
-          padding: "30px 20px",
-        }}
-      >
-        <strong
-          style={{
-            fontSize: "20px",
-            letterSpacing: "1px",
-          }}
-        >
-          RETTOR RENTAL
-        </strong>
+        <h1 className="text-[44px] font-normal leading-[1.07] tracking-[-2px] text-[#172f2c] lg:text-[62px] lg:tracking-[-3px]">
+          {baris1}
+          <br />
+          {baris2}
+        </h1>
+      </div>
 
-        <p
-          style={{
-            margin: "8px 0 0",
-            color: "#9CA3AF",
-            fontSize: "14px",
-          }}
-        >
-          Solusi rental motor mudah dan terpercaya.
-        </p>
+      <div className="relative min-h-[240px] flex-1 overflow-hidden">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/login-hero.png" alt="" className="pointer-events-none absolute inset-0 size-full object-cover" />
 
-        <p
-          style={{
-            margin: "15px 0 0",
-            color: "#6B7280",
-            fontSize: "12px",
-          }}
-        >
-          © 2026 RETTOR RENTAL. All Rights Reserved.
-        </p>
-      </footer>
-    </main>
+        <div className="absolute left-8 top-8 flex items-center gap-2 rounded-full bg-white px-[14px] py-[10px]">
+          <Icon name="map-pin" className="size-4 text-[#087f6d]" />
+          <p className="whitespace-nowrap text-xs font-semibold text-[#172f2c]">DKI Jakarta</p>
+        </div>
+      </div>
+    </section>
   );
 }

@@ -1,10 +1,45 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
+import { inter, Icon, SiteNav, SiteFooter } from "./components/site";
+
+// ================= DATA TAMPILAN =================
+// Teks pelengkap di kartu motor (lokasi, rating, label) tidak ada di database,
+// jadi dipakai sama seperti di Figma. Urutannya mengikuti urutan kartu.
+const LABEL_KARTU = ["Paling laris", "Nyaman berdua", "Gesit di kota", "Jalan lebih gaya", "Jalan lebih gaya"];
+const NILAI_KARTU = ["4,9 (128)", "4,9 (96)", "4,8 (84)", "4,9 (72)", "4,9 (72)"];
+const LEBAR_KARTU = [283, 227, 250, 284, 284];
+
+const KATEGORI = [
+  { id: "semua", label: "Semua motor", ikon: "bike", sub: "Temukan favoritmu" },
+  { id: "matic", label: "Matic", ikon: "gauge", sub: "Praktis setiap hari" },
+  { id: "vespa", label: "Vespa", ikon: "sparkles", sub: "Santai penuh gaya" },
+  { id: "sport", label: "Sport & manual", ikon: "route", sub: "Untuk jiwa penjelajah" },
+  { id: "listrik", label: "Motor listrik", ikon: "zap", sub: "Lebih ramah bumi" },
+];
+
+const LANGKAH = [
+  { no: "01", ikon: "search", judul: "Temukan motor pilihan", isi: "Pilih kota, tanggal, dan motor yang cocok dengan rencana perjalananmu." },
+  { no: "02", ikon: "badge-check", judul: "Lengkapi data & pesan", isi: "Siapkan KTP dan SIM C aktif. Konfirmasi pesanan dan bayar dengan aman." },
+  { no: "03", ikon: "key-round", judul: "Ambil kunci, mulai jalan", isi: "Motor di antar ke rumah. dan siap di gunakan untuk jalan jalan." },
+];
+
+function cocokKategori(item, id) {
+  const nama = String(item.nama || "").toLowerCase();
+  const jenis = String(item.jenis || "").toLowerCase();
+
+  if (id === "matic") return jenis === "matic";
+  if (id === "vespa") return nama.includes("vespa");
+  if (id === "sport") return jenis === "sport" || jenis === "manual";
+  if (id === "listrik") return jenis === "listrik" || nama.includes("listrik");
+  return true;
+}
 
 export default function HomePage() {
   const [motorList, setMotorList] = useState([]);
   const [user, setUser] = useState(null);
+  const [kategori, setKategori] = useState("semua");
 
   // ================= AMBIL DATA =================
   useEffect(() => {
@@ -36,991 +71,271 @@ export default function HomePage() {
 
   // ================= FORMAT RUPIAH =================
   const formatRupiah = (angka) => {
-    return new Intl.NumberFormat("id-ID", {
-      style: "currency",
-      currency: "IDR",
-      minimumFractionDigits: 0,
-    }).format(angka || 0);
+    return `Rp${Number(angka || 0).toLocaleString("id-ID")}`;
   };
 
+  const sudahLogin = Boolean(user);
+  const daftarMotor = motorList.filter((item) => cocokKategori(item, kategori));
+
   return (
-    <main
-      style={{
-        minHeight: "100vh",
-        background: "#F0F7FF",
-        fontFamily: "Arial, sans-serif",
-        color: "#111827",
-      }}
-    >
-      {/* ================= NAVBAR ================= */}
-      <nav
-        style={{
-          background: "white",
-          borderBottom: "1px solid #e5e7eb",
-          position: "sticky",
-          top: 0,
-          zIndex: 100,
-        }}
-      >
-        <div
-          style={{
-            maxWidth: "1200px",
-            margin: "0 auto",
-            padding: "18px 25px",
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
-        >
-          {/* LOGO */}
-          <a
-            href="/"
-            style={{
-              textDecoration: "none",
-              fontSize: "28px",
-              fontWeight: "900",
-              color: "#2563eb",
-              letterSpacing: "-1px",
-            }}
-          >
-            RETTOR
-          </a>
+    <div className={`${inter.className} flex min-h-screen flex-col bg-white`}>
+      <SiteNav nama={user?.nama} login={sudahLogin} />
 
-          {/* MENU */}
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "25px",
-            }}
-          >
-            <a
-              href="/"
-              style={{
-                color: "#2563eb",
-                textDecoration: "none",
-                fontWeight: "bold",
-              }}
-            >
-              Beranda
-            </a>
-
-            <a
-              href="/motor"
-              style={{
-                color: "#374151",
-                textDecoration: "none",
-                fontWeight: "600",
-              }}
-            >
-              Motor
-            </a>
-
-            {user ? (
-              <>
-                <a
-                  href="/pesanan"
-                  style={{
-                    color: "#374151",
-                    textDecoration: "none",
-                    fontWeight: "600",
-                  }}
-                >
-                  Pesanan Saya
-                </a>
-
-                <a
-                  href="/profil"
-                  style={{
-                    color: "#374151",
-                    textDecoration: "none",
-                    fontWeight: "600",
-                  }}
-                >
-                  Profil
-                </a>
-
-                <button
-                  onClick={() => {
-                    localStorage.removeItem("rettor_user");
-                    window.location.href = "/";
-                  }}
-                  style={{
-                    border: "none",
-                    background: "transparent",
-                    color: "#dc2626",
-                    fontWeight: "600",
-                    cursor: "pointer",
-                    fontSize: "15px",
-                  }}
-                >
-                  Logout
-                </button>
-              </>
-            ) : (
-              <>
-                <a
-                  href="/login"
-                  style={{
-                    color: "#374151",
-                    textDecoration: "none",
-                    fontWeight: "600",
-                  }}
-                >
-                  Login
-                </a>
-
-                <a
-                  href="/register"
-                  style={{
-                    background: "#2563eb",
-                    color: "white",
-                    padding: "11px 20px",
-                    borderRadius: "8px",
-                    textDecoration: "none",
-                    fontWeight: "bold",
-                  }}
-                >
-                  Daftar
-                </a>
-              </>
-            )}
-          </div>
-        </div>
-      </nav>
-
-      {/* ================= HERO ================= */}
-      <section
-        style={{
-          minHeight: "570px",
-          background:
-            "linear-gradient(90deg, rgba(15,76,219,0.94) 0%, rgba(15,76,219,0.78) 35%, rgba(15,76,219,0.28) 70%, rgba(15,76,219,0.12) 100%), url('/rettor-hero.png')",
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          backgroundRepeat: "no-repeat",
-          color: "white",
-          display: "flex",
-          alignItems: "center",
-        }}
-      >
-        <div
-          style={{
-            width: "100%",
-            maxWidth: "1200px",
-            margin: "0 auto",
-            padding: "70px 25px 110px",
-            boxSizing: "border-box",
-          }}
-        >
-          {/* HERO CONTENT */}
-          <div
-            style={{
-              maxWidth: "650px",
-            }}
-          >
-            <div
-              style={{
-                display: "inline-block",
-                background: "rgba(255,255,255,0.14)",
-                border: "1px solid rgba(255,255,255,0.3)",
-                padding: "9px 16px",
-                borderRadius: "30px",
-                fontSize: "14px",
-                fontWeight: "bold",
-                marginBottom: "20px",
-                backdropFilter: "blur(5px)",
-              }}
-            >
-              🏍️ RENTAL MOTOR TERPERCAYA
+      <main className="leading-[normal]">
+        {/* ================= HERO ================= */}
+        <section className="flex flex-col bg-[#f6f3ea] lg:h-[560px] lg:flex-row">
+          <div className="flex flex-col items-start gap-6 px-6 pb-12 pt-[52px] lg:w-[695px] lg:shrink-0 lg:pl-20 lg:pr-11">
+            <div className="flex items-center gap-2">
+              <span className="size-[7px] rounded-full bg-[#087f6d]" />
+              <p className="text-xs font-bold tracking-[1.5px] text-[#087f6d]">DKI Jakarta</p>
             </div>
 
-            <h1
-              style={{
-                fontSize: "54px",
-                lineHeight: "1.08",
-                margin: "0 0 20px",
-                fontWeight: "900",
-                letterSpacing: "-1px",
-              }}
-            >
-              Perjalanan Lebih Mudah,
+            <h1 className="text-[44px] font-normal leading-[1.07] tracking-[-2px] text-[#172f2c] lg:text-[62px] lg:tracking-[-3px]">
+              Kotanya baru.
               <br />
-              <span style={{ color: "#bfdbfe" }}>
-                Motor Siap Jalan.
-              </span>
+              Bebas jalannya.
             </h1>
 
-            <p
-              style={{
-                fontSize: "19px",
-                lineHeight: "1.7",
-                color: "#eff6ff",
-                maxWidth: "600px",
-                margin: "0 0 30px",
-              }}
-            >
-              Sewa motor pilihanmu dengan mudah, cepat, dan
-              nyaman. Pilih motor, tentukan tanggal, lalu
-              tunggu konfirmasi dari RETTOR RENTAL.
+            <p className="w-[480px] max-w-full text-[17px] leading-[1.65] text-[#687773]">
+              Sewa motor pilihan untuk agenda spontan, urusan harian, atau liburan. Pesan mudah, tinggal jalan.
             </p>
 
-            <div
-              style={{
-                display: "flex",
-                gap: "15px",
-                flexWrap: "wrap",
-              }}
-            >
-              <a
-                href="/motor"
-                style={{
-                  background: "white",
-                  color: "#2563eb",
-                  padding: "15px 27px",
-                  borderRadius: "9px",
-                  textDecoration: "none",
-                  fontWeight: "bold",
-                  fontSize: "16px",
-                  boxShadow: "0 5px 20px rgba(0,0,0,0.15)",
-                }}
-              >
-                🏍️ Lihat Motor
-              </a>
-
-              <a
-                href={user ? "/pesanan" : "/login"}
-                style={{
-                  background: "rgba(255,255,255,0.12)",
-                  color: "white",
-                  border: "1px solid rgba(255,255,255,0.6)",
-                  padding: "15px 27px",
-                  borderRadius: "9px",
-                  textDecoration: "none",
-                  fontWeight: "bold",
-                  fontSize: "16px",
-                  backdropFilter: "blur(5px)",
-                }}
-              >
-                Cek Pesanan
-              </a>
+            <div className="flex items-center gap-4 pt-2">
+              <div className="flex items-center gap-[7px]">
+                <Icon name="star" className="size-[18px] text-[#ae781f]" />
+                <p className="text-[15px] font-bold text-[#172f2c]">4,9/5</p>
+              </div>
+              <div className="h-[22px] w-px bg-[#dee5df]" />
+              <p className="text-[13px] text-[#687773]">Dipercaya 12.000+ teman jalan</p>
             </div>
           </div>
-        </div>
-      </section>
 
-      {/* ================= BOOKING BAR ================= */}
-      <section
-        style={{
-          maxWidth: "1050px",
-          margin: "-45px auto 0",
-          padding: "0 25px",
-          position: "relative",
-          zIndex: 5,
-        }}
-      >
-        <div
-          style={{
-            background: "white",
-            borderRadius: "16px",
-            padding: "25px",
-            boxShadow: "0 10px 35px rgba(0,0,0,0.12)",
-            display: "grid",
-            gridTemplateColumns:
-              "repeat(auto-fit, minmax(180px, 1fr))",
-            gap: "15px",
-            alignItems: "end",
-          }}
-        >
-          <div>
-            <p
-              style={{
-                margin: "0 0 8px",
-                fontSize: "13px",
-                color: "#2563eb",
-                fontWeight: "bold",
-              }}
-            >
-              PILIH MOTOR
-            </p>
+          <div className="relative min-h-[420px] flex-1 overflow-hidden">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/login-hero.png" alt="" className="pointer-events-none absolute inset-0 size-full object-cover" />
 
-            <strong style={{ color: "#111827" }}>
-              Berbagai pilihan motor
-            </strong>
+            <div className="absolute left-8 top-8 flex items-center gap-2 rounded-full bg-white px-[14px] py-[10px]">
+              <Icon name="map-pin" className="size-4 text-[#087f6d]" />
+              <p className="whitespace-nowrap text-xs font-semibold text-[#172f2c]">DKI Jakarta</p>
+            </div>
+
+            <div className="absolute bottom-[30px] left-8 flex flex-col gap-[5px] rounded-2xl bg-[#103f37] p-[18px]">
+              <p className="whitespace-nowrap text-sm font-semibold text-white">Jalan pelan. Temukan lebih banyak.</p>
+              <p className="whitespace-nowrap text-xs text-[#e7f3ec]">Mulai petualangan kecilmu bersama Rettor.</p>
+            </div>
           </div>
+        </section>
 
-          <div>
-            <p
-              style={{
-                margin: "0 0 8px",
-                fontSize: "13px",
-                color: "#2563eb",
-                fontWeight: "bold",
-              }}
-            >
-              HARGA
-            </p>
+        {/* ================= PILIHAN MOTOR ================= */}
+        <section className="flex flex-col gap-9 px-6 pb-[72px] pt-14 lg:px-20">
+          {/* KATEGORI */}
+          <div className="flex gap-[18px] overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            {KATEGORI.map((k) => {
+              const aktif = kategori === k.id;
 
-            <strong style={{ color: "#111827" }}>
-              Mulai dari Rp70.000/hari
-            </strong>
-          </div>
-
-          <div>
-            <p
-              style={{
-                margin: "0 0 8px",
-                fontSize: "13px",
-                color: "#2563eb",
-                fontWeight: "bold",
-              }}
-            >
-              PROSES
-            </p>
-
-            <strong style={{ color: "#111827" }}>
-              Mudah & cepat
-            </strong>
-          </div>
-
-          <a
-            href="/motor"
-            style={{
-              textAlign: "center",
-              background: "#2563eb",
-              color: "white",
-              padding: "14px 20px",
-              borderRadius: "9px",
-              textDecoration: "none",
-              fontWeight: "bold",
-            }}
-          >
-            Mulai Sewa →
-          </a>
-        </div>
-      </section>
-
-      {/* ================= MOTOR POPULER ================= */}
-      <section
-        style={{
-          maxWidth: "1200px",
-          margin: "0 auto",
-          padding: "80px 25px",
-        }}
-      >
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "end",
-            marginBottom: "30px",
-            gap: "20px",
-          }}
-        >
-          <div>
-            <p
-              style={{
-                color: "#2563eb",
-                fontWeight: "bold",
-                margin: 0,
-              }}
-            >
-              PILIHAN MOTOR
-            </p>
-
-            <h2
-              style={{
-                fontSize: "34px",
-                margin: "8px 0 0",
-                color: "#111827",
-              }}
-            >
-              Motor Favorit Kami
-            </h2>
-
-            <p
-              style={{
-                color: "#4b5563",
-                marginTop: "8px",
-              }}
-            >
-              Pilih kendaraan yang sesuai dengan kebutuhanmu.
-            </p>
-          </div>
-
-          <a
-            href="/motor"
-            style={{
-              color: "#2563eb",
-              textDecoration: "none",
-              fontWeight: "bold",
-            }}
-          >
-            Lihat Semua →
-          </a>
-        </div>
-
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns:
-              "repeat(auto-fit, minmax(250px, 1fr))",
-            gap: "25px",
-          }}
-        >
-          {motorList.slice(0, 3).map((item) => (
-            <div
-              key={item.id}
-              style={{
-                background: "white",
-                borderRadius: "16px",
-                overflow: "hidden",
-                boxShadow: "0 5px 20px rgba(0,0,0,0.06)",
-                border: "1px solid #dbeafe",
-              }}
-            >
-              <div
-                style={{
-                  height: "220px",
-                  background: "#eff6ff",
-                  display: "flex",
-                  justifyContent: "center",
-                  alignItems: "center",
-                  padding: "15px",
-                }}
-              >
-                {item.gambar ? (
-                  <img
-                    src={item.gambar}
-                    alt={item.nama}
-                    style={{
-                      width: "100%",
-                      height: "200px",
-                      objectFit: "contain",
-                    }}
-                  />
-                ) : (
-                  <span style={{ fontSize: "80px" }}>
-                    🏍️
-                  </span>
-                )}
-              </div>
-
-              <div style={{ padding: "22px" }}>
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    gap: "10px",
-                  }}
+              return (
+                <button
+                  key={k.id}
+                  type="button"
+                  onClick={() => setKategori(k.id)}
+                  className={`flex min-w-[200px] flex-1 items-center gap-3 rounded-2xl border text-left lg:min-w-0 ${
+                    sudahLogin ? "h-11 px-4" : "p-4"
+                  } ${aktif ? "border-[#087f6d] bg-[#e7f3ec]" : "border-[#f5f7f4] bg-[#f5f7f4]"}`}
                 >
-                  <h3
-                    style={{
-                      margin: 0,
-                      color: "#111827",
-                      fontSize: "20px",
-                    }}
-                  >
-                    {item.nama}
-                  </h3>
-
-                  <span
-                    style={{
-                      background: "#dcfce7",
-                      color: "#15803d",
-                      padding: "5px 9px",
-                      borderRadius: "20px",
-                      fontSize: "11px",
-                      fontWeight: "bold",
-                      height: "fit-content",
-                    }}
-                  >
-                    Tersedia
+                  <Icon name={k.ikon} className="size-6 shrink-0 text-[#087f6d]" />
+                  <span className={`flex flex-col whitespace-nowrap ${sudahLogin ? "" : "gap-1.5"}`}>
+                    <span className="text-[13px] text-[#172f2c]">{k.label}</span>
+                    {!sudahLogin && <span className="text-[10px] text-[#687773]">{k.sub}</span>}
                   </span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* PENGANTAR KATALOG */}
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:gap-10">
+            <div className="flex min-w-0 flex-1 flex-col gap-3">
+              <p className="text-xs font-bold tracking-[1.8px] text-[#087f6d]">PILIHAN TEMAN JALAN</p>
+              <h2 className="text-[30px] font-normal leading-[1.18] tracking-[-1.4px] text-[#172f2c] lg:text-[38px]">
+                Motor pas, perjalanan puas.
+              </h2>
+            </div>
+
+            <Link href="/motor" className="flex shrink-0 items-center gap-2 pb-1.5 text-sm text-[#087f6d]">
+              Lihat semua motor
+              <Icon name="arrow-right" className="size-[18px]" />
+            </Link>
+          </div>
+
+          {/* KATALOG MOTOR */}
+          <div className="flex items-start gap-5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            {daftarMotor.length === 0 && (
+              <div className="w-full rounded-2xl border border-[#dee5df] p-10 text-center text-sm text-[#687773]">
+                {motorList.length === 0 ? "Belum ada motor." : "Belum ada motor untuk kategori ini."}
+              </div>
+            )}
+
+            {daftarMotor.map((item, i) => (
+              <div
+                key={item.id}
+                style={{ width: LEBAR_KARTU[i] ?? 284 }}
+                className="flex shrink-0 flex-col overflow-hidden rounded-2xl border border-[#dee5df] bg-white"
+              >
+                {/* FOTO */}
+                <div className="relative h-[214px] w-full overflow-hidden bg-[#f5f7f4]">
+                  {item.gambar && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={item.gambar} alt={item.nama} className="size-full object-cover" />
+                  )}
+                  <div className="absolute left-[14px] top-[14px] rounded-lg bg-white px-[9px] py-1.5">
+                    <p className="whitespace-nowrap text-[10px] font-semibold text-[#087f6d]">
+                      {LABEL_KARTU[i % LABEL_KARTU.length]}
+                    </p>
+                  </div>
                 </div>
 
-                <p
-                  style={{
-                    color: "#4b5563",
-                    margin: "8px 0 18px",
-                  }}
-                >
-                  {item.jenis} • {item.cc}cc
-                </p>
+                {/* INFORMASI */}
+                <div className="flex flex-col gap-[14px] p-5">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-1">
+                      <Icon name="map-pin" className="size-[13px] text-[#687773]" />
+                      <p className="whitespace-nowrap text-[11px] text-[#687773]">Cakung, Jakarta</p>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Icon name="star" className="size-3 text-[#ae781f]" />
+                      <p className="whitespace-nowrap text-[11px] text-[#172f2c]">{NILAI_KARTU[i % NILAI_KARTU.length]}</p>
+                    </div>
+                  </div>
 
-                <strong
-                  style={{
-                    color: "#2563eb",
-                    fontSize: "19px",
-                  }}
-                >
-                  {formatRupiah(item.harga)}
+                  <div className="flex flex-col gap-[7px]">
+                    <p className="text-[20px] tracking-[-0.5px] text-[#172f2c]">{item.nama}</p>
+                    <p className="whitespace-nowrap text-xs text-[#687773]">
+                      {item.jenis} · {item.cc} cc · 2 helm termasuk
+                    </p>
+                  </div>
 
-                  <span
-                    style={{
-                      color: "#4b5563",
-                      fontSize: "13px",
-                      fontWeight: "normal",
-                    }}
+                  <div className="h-px w-full bg-[#dee5df]" />
+
+                  <div className="flex flex-col gap-[5px] whitespace-nowrap">
+                    <p className="text-[11px] text-[#687773]">Mulai dari</p>
+                    <div className="flex items-baseline gap-1">
+                      <p className="text-[22px] font-bold tracking-[-0.7px] text-[#172f2c]">{formatRupiah(item.harga)}</p>
+                      <p className="text-xs text-[#687773]">/ hari</p>
+                    </div>
+                  </div>
+
+                  <Link
+                    href={`/motor/${item.id}`}
+                    className="flex h-10 w-full items-center justify-center gap-2 rounded-lg bg-[#e7f3ec] text-[13px] text-[#087f6d]"
                   >
-                    {" "}
-                    / hari
-                  </span>
-                </strong>
-
-                <a
-                  href={`/motor/${item.id}`}
-                  style={{
-                    display: "block",
-                    textAlign: "center",
-                    marginTop: "18px",
-                    background: "#eff6ff",
-                    color: "#2563eb",
-                    padding: "12px",
-                    borderRadius: "8px",
-                    textDecoration: "none",
-                    fontWeight: "bold",
-                  }}
-                >
-                  Lihat Detail
-                </a>
+                    Pilih motor
+                    <Icon name="arrow-up-right" className="size-4" />
+                  </Link>
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ================= KEUNGGULAN ================= */}
-      <section
-        style={{
-          background: "white",
-          padding: "75px 25px",
-          borderTop: "1px solid #dbeafe",
-          borderBottom: "1px solid #dbeafe",
-        }}
-      >
-        <div
-          style={{
-            maxWidth: "1100px",
-            margin: "0 auto",
-            textAlign: "center",
-          }}
-        >
-          <p
-            style={{
-              color: "#2563eb",
-              fontWeight: "bold",
-              margin: 0,
-            }}
-          >
-            KENAPA RETTOR?
-          </p>
-
-          <h2
-            style={{
-              fontSize: "34px",
-              margin: "8px 0 40px",
-              color: "#111827",
-            }}
-          >
-            Rental Motor Tanpa Ribet
-          </h2>
-
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns:
-                "repeat(auto-fit, minmax(220px, 1fr))",
-              gap: "25px",
-            }}
-          >
-            <div
-              style={{
-                padding: "30px 20px",
-                border: "1px solid #dbeafe",
-                borderRadius: "15px",
-              }}
-            >
-              <div style={{ fontSize: "40px" }}>⚡</div>
-
-              <h3 style={{ color: "#111827" }}>
-                Mudah & Cepat
-              </h3>
-
-              <p
-                style={{
-                  color: "#4b5563",
-                  lineHeight: "1.6",
-                }}
-              >
-                Proses penyewaan dibuat sederhana agar kamu
-                tidak perlu ribet.
-              </p>
-            </div>
-
-            <div
-              style={{
-                padding: "30px 20px",
-                border: "1px solid #dbeafe",
-                borderRadius: "15px",
-              }}
-            >
-              <div style={{ fontSize: "40px" }}>💰</div>
-
-              <h3 style={{ color: "#111827" }}>
-                Harga Terjangkau
-              </h3>
-
-              <p
-                style={{
-                  color: "#4b5563",
-                  lineHeight: "1.6",
-                }}
-              >
-                Pilihan motor dengan harga sewa yang sesuai
-                untuk berbagai kebutuhan.
-              </p>
-            </div>
-
-            <div
-              style={{
-                padding: "30px 20px",
-                border: "1px solid #dbeafe",
-                borderRadius: "15px",
-              }}
-            >
-              <div style={{ fontSize: "40px" }}>🛵</div>
-
-              <h3 style={{ color: "#111827" }}>
-                Banyak Pilihan
-              </h3>
-
-              <p
-                style={{
-                  color: "#4b5563",
-                  lineHeight: "1.6",
-                }}
-              >
-                Pilih motor sesuai kebutuhan perjalanan kamu.
-              </p>
-            </div>
-
-            <div
-              style={{
-                padding: "30px 20px",
-                border: "1px solid #dbeafe",
-                borderRadius: "15px",
-              }}
-            >
-              <div style={{ fontSize: "40px" }}>🔒</div>
-
-              <h3 style={{ color: "#111827" }}>
-                Proses Teratur
-              </h3>
-
-              <p
-                style={{
-                  color: "#4b5563",
-                  lineHeight: "1.6",
-                }}
-              >
-                Setiap penyewaan dicatat dan menunggu
-                konfirmasi dari admin.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ================= CARA SEWA ================= */}
-      <section
-        style={{
-          maxWidth: "1100px",
-          margin: "0 auto",
-          padding: "80px 25px",
-        }}
-      >
-        <div style={{ textAlign: "center" }}>
-          <p
-            style={{
-              color: "#2563eb",
-              fontWeight: "bold",
-              margin: 0,
-            }}
-          >
-            CARA SEWA
-          </p>
-
-          <h2
-            style={{
-              fontSize: "34px",
-              margin: "8px 0 45px",
-              color: "#111827",
-            }}
-          >
-            Sewa Motor Dalam 3 Langkah
-          </h2>
-        </div>
-
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns:
-              "repeat(auto-fit, minmax(250px, 1fr))",
-            gap: "30px",
-          }}
-        >
-          <div style={{ textAlign: "center" }}>
-            <div
-              style={{
-                width: "55px",
-                height: "55px",
-                margin: "0 auto 18px",
-                borderRadius: "50%",
-                background: "#2563eb",
-                color: "white",
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                fontWeight: "bold",
-                fontSize: "20px",
-              }}
-            >
-              1
-            </div>
-
-            <h3 style={{ color: "#111827" }}>
-              Pilih Motor
-            </h3>
-
-            <p style={{ color: "#4b5563" }}>
-              Pilih motor yang sesuai dengan kebutuhanmu.
-            </p>
+            ))}
           </div>
 
-          <div style={{ textAlign: "center" }}>
-            <div
-              style={{
-                width: "55px",
-                height: "55px",
-                margin: "0 auto 18px",
-                borderRadius: "50%",
-                background: "#2563eb",
-                color: "white",
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                fontWeight: "bold",
-                fontSize: "20px",
-              }}
-            >
-              2
-            </div>
-
-            <h3 style={{ color: "#111827" }}>
-              Isi Form Sewa
-            </h3>
-
-            <p style={{ color: "#4b5563" }}>
-              Tentukan tanggal dan lengkapi data penyewaan.
-            </p>
+          {/* CATATAN */}
+          <div className="flex items-start justify-center gap-[7px]">
+            <Icon name="info" className="size-[14px] shrink-0 text-[#687773]" />
+            <p className="text-xs text-[#687773]">Baca ketentuan sewa sebelum mensewa</p>
           </div>
+        </section>
 
-          <div style={{ textAlign: "center" }}>
-            <div
-              style={{
-                width: "55px",
-                height: "55px",
-                margin: "0 auto 18px",
-                borderRadius: "50%",
-                background: "#2563eb",
-                color: "white",
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                fontWeight: "bold",
-                fontSize: "20px",
-              }}
-            >
-              3
-            </div>
-
-            <h3 style={{ color: "#111827" }}>
-              Tunggu Konfirmasi
-            </h3>
-
-            <p style={{ color: "#4b5563" }}>
-              Admin akan memproses dan mengonfirmasi pesananmu.
-            </p>
+        {/* ================= PROMO ================= */}
+        <section className="px-6 pb-20 lg:px-20">
+          <div className="flex flex-col gap-6 lg:flex-row lg:overflow-x-auto lg:[scrollbar-width:none] lg:[&::-webkit-scrollbar]:hidden">
+            <KartuPromo
+              eyebrow="PERJALANAN PERTAMA, LEBIH HEMAT"
+              baris1="Jalan dulu."
+              baris2="Hemat hingga 10%."
+              syarat="Min. sewa 3 hari."
+              kode="JALANBARENG"
+              gambar="/jalanbareng.jpg"
+              gambarCls="w-[120px] sm:w-[161px] lg:h-[309px] lg:w-[206px]"
+            />
+            <KartuPromo
+              eyebrow="PERJALANAN BARENG KELUARGA, LEBIH HEMAT"
+              baris1="Jalan Bareng Keluarga."
+              baris2="Hemat hingga 15%."
+              syarat="Min. sewa 7 hari."
+              kode="SAMAKELUARGA"
+              gambar="/promo-keluarga.jpg"
+              gambarCls="w-[120px] sm:w-[161px] lg:h-[286px]"
+            />
+            {/* Kartu ke-3. Kalau sudah punya foto: taruh di public/ lalu tambahkan
+                gambar="/promo-14hari.jpg" dan gambarCls="w-[120px] sm:w-[161px] lg:h-[286px]" */}
+            <KartuPromo
+              eyebrow="PERJALANAN PANJANG, LEBIH HEMAT"
+              baris1="Jalan Jauh."
+              baris2="Hemat hingga 20%."
+              syarat="Min. sewa 14 hari."
+              kode="JALANJAUH"
+            />
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* ================= CTA ================= */}
-      <section
-        style={{
-          maxWidth: "1150px",
-          margin: "0 auto 70px",
-          padding: "0 25px",
-        }}
-      >
-        <div
-          style={{
-            background:
-              "linear-gradient(135deg, #1d4ed8, #2563eb)",
-            color: "white",
-            borderRadius: "22px",
-            padding: "55px 40px",
-            textAlign: "center",
-          }}
-        >
-          <h2
-            style={{
-              fontSize: "34px",
-              margin: "0 0 12px",
-            }}
-          >
-            Siap Memulai Perjalanan?
-          </h2>
-
-          <p
-            style={{
-              color: "#dbeafe",
-              fontSize: "17px",
-              marginBottom: "25px",
-            }}
-          >
-            Pilih motor favoritmu dan lakukan penyewaan
-            sekarang.
-          </p>
-
-          <a
-            href="/motor"
-            style={{
-              display: "inline-block",
-              background: "white",
-              color: "#2563eb",
-              padding: "14px 28px",
-              borderRadius: "9px",
-              textDecoration: "none",
-              fontWeight: "bold",
-            }}
-          >
-            Mulai Sewa Sekarang
-          </a>
-        </div>
-      </section>
-
-      {/* ================= FOOTER ================= */}
-      <footer
-        style={{
-          background: "#111827",
-          color: "white",
-          padding: "45px 25px 25px",
-        }}
-      >
-        <div
-          style={{
-            maxWidth: "1100px",
-            margin: "0 auto",
-            display: "grid",
-            gridTemplateColumns:
-              "repeat(auto-fit, minmax(220px, 1fr))",
-            gap: "30px",
-          }}
-        >
-          <div>
-            <h2
-              style={{
-                margin: 0,
-                color: "#60a5fa",
-              }}
-            >
-              RETTOR
+        {/* ================= TIGA LANGKAH ================= */}
+        <section className="flex flex-col gap-10 bg-[#f5f7f4] px-6 pb-20 pt-[72px] lg:px-20">
+          <div className="flex flex-col gap-3">
+            <p className="text-xs font-bold tracking-[1.8px] text-[#087f6d]">NGGAK PAKAI RIBET</p>
+            <h2 className="text-[30px] font-normal leading-[1.18] tracking-[-1.4px] text-[#172f2c] lg:text-[38px]">
+              Tiga langkah. Langsung jalan.
             </h2>
-
-            <p
-              style={{
-                color: "#9ca3af",
-                lineHeight: "1.7",
-              }}
-            >
-              RETTOR RENTAL adalah layanan penyewaan motor
-              untuk menemani perjalananmu dengan mudah dan
-              nyaman.
-            </p>
           </div>
 
-          <div>
-            <h3>Menu</h3>
-
-            <p>
-              <a
-                href="/"
-                style={{
-                  color: "#9ca3af",
-                  textDecoration: "none",
-                }}
-              >
-                Beranda
-              </a>
-            </p>
-
-            <p>
-              <a
-                href="/motor"
-                style={{
-                  color: "#9ca3af",
-                  textDecoration: "none",
-                }}
-              >
-                Daftar Motor
-              </a>
-            </p>
-
-            <p>
-              <a
-                href="/login"
-                style={{
-                  color: "#9ca3af",
-                  textDecoration: "none",
-                }}
-              >
-                Login
-              </a>
-            </p>
+          <div className="flex flex-col gap-12 lg:flex-row">
+            {LANGKAH.map((l) => (
+              <div key={l.no} className="flex min-w-0 flex-1 flex-col gap-[18px]">
+                <div className="flex items-center justify-between">
+                  <span className="flex size-[52px] items-center justify-center rounded-2xl bg-white">
+                    <Icon name={l.ikon} className="size-[25px] text-[#087f6d]" />
+                  </span>
+                  <p className="text-[36px] tracking-[-1px] text-[#087f6d]">{l.no}</p>
+                </div>
+                <p className="text-[19px] tracking-[-0.5px] text-[#172f2c]">{l.judul}</p>
+                <p className="text-sm leading-[1.65] text-[#687773]">{l.isi}</p>
+              </div>
+            ))}
           </div>
+        </section>
+      </main>
 
-          <div>
-            <h3>Layanan</h3>
+      <SiteFooter legal={sudahLogin} />
+    </div>
+  );
+}
 
-            <p style={{ color: "#9ca3af" }}>
-              Rental Motor
-            </p>
+// ================= KARTU PROMO =================
+function KartuPromo({ eyebrow, baris1, baris2, syarat, kode, gambar, gambarCls }) {
+  return (
+    <div className="flex h-[286px] w-full overflow-hidden rounded-3xl bg-[#103f37] lg:w-[656px] lg:shrink-0">
+      <div className="flex min-w-0 flex-1 flex-col items-start gap-4 p-8 lg:w-[450px] lg:flex-none">
+        <p className="text-[11px] font-bold tracking-[1.5px] text-[#d7eb95]">{eyebrow}</p>
 
-            <p style={{ color: "#9ca3af" }}>
-              Pemesanan Online
-            </p>
+        <p className="text-[30px] font-normal leading-[1.15] tracking-[-1px] text-white">
+          {baris1}
+          <br />
+          {baris2}
+        </p>
 
-            <p style={{ color: "#9ca3af" }}>
-              Konfirmasi Pesanan
-            </p>
-          </div>
+        <p className="text-xs text-[#e7f3ec]">{syarat}</p>
+
+        <div className="flex items-center gap-[14px]">
+          <span className="rounded-md border border-dashed border-[#d7eb95] px-[14px] py-[10px] text-[13px] font-bold tracking-[1px] text-[#d7eb95]">
+            {kode}
+          </span>
+          <Link href="/motor" className="whitespace-nowrap text-xs font-semibold text-white">
+            Pakai promo →
+          </Link>
         </div>
+      </div>
 
-        <div
-          style={{
-            maxWidth: "1100px",
-            margin: "35px auto 0",
-            paddingTop: "20px",
-            borderTop: "1px solid #374151",
-            textAlign: "center",
-            color: "#6b7280",
-            fontSize: "14px",
-          }}
-        >
-          © 2026 RETTOR RENTAL. All rights reserved.
-        </div>
-      </footer>
-    </main>
+      {gambar && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={gambar} alt="" className={`h-full shrink-0 self-start object-cover ${gambarCls}`} />
+      )}
+    </div>
   );
 }

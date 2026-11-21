@@ -6,7 +6,7 @@ const db = new Pool({
   host: "localhost",
   port: 5432,
   user: "postgres",
-  password: "alwa12",
+  password: "1111",
   database: "rettor_db",
 });
 

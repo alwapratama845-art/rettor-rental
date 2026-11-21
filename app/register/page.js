@@ -1,6 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
+import AuthShell from "../components/AuthShell";
+import { TextField, PasswordField } from "../components/AuthFields";
 
 export default function RegisterPage() {
   const [nama, setNama] = useState("");
@@ -46,169 +49,63 @@ export default function RegisterPage() {
   };
 
   return (
-    <main className="min-h-screen bg-gray-100">
-
-      {/* NAVBAR */}
-      <nav className="bg-white shadow-md">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-
-          <a
-            href="/"
-            className="text-2xl font-bold text-blue-600"
-          >
-            RETTOR
-          </a>
-
-          <div className="flex gap-8">
-
-            <a
-              href="/"
-              className="text-gray-900 hover:text-blue-600"
-            >
-              Beranda
-            </a>
-
-            <a
-              href="/motor"
-              className="text-gray-900 hover:text-blue-600"
-            >
-              Motor
-            </a>
-
-            <a
-              href="/login"
-              className="text-gray-900 hover:text-blue-600"
-            >
-              Login
-            </a>
-
-          </div>
-        </div>
-      </nav>
-
-      {/* REGISTER */}
-      <section className="min-h-[calc(100vh-73px)] flex items-center justify-center px-6 py-12">
-
-        <div className="bg-white w-full max-w-md rounded-2xl shadow-lg p-8">
-
-          <div className="text-center mb-8">
-
-            <h1 className="text-3xl font-bold text-gray-900">
-              Daftar Akun
-            </h1>
-
-            <p className="text-gray-700 mt-2">
-              Buat akun RETTOR RENTAL
-            </p>
-
-          </div>
-
-          <form
-            onSubmit={handleRegister}
-            className="space-y-5"
-          >
-
-            {/* NAMA */}
-            <div>
-
-              <label className="block text-gray-900 font-semibold mb-2">
-                Nama Lengkap
-              </label>
-
-              <input
-                type="text"
-                value={nama}
-                onChange={(e) => setNama(e.target.value)}
-                placeholder="Masukkan nama lengkap"
-                required
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-
-            </div>
-
-            {/* EMAIL */}
-            <div>
-
-              <label className="block text-gray-900 font-semibold mb-2">
-                Email
-              </label>
-
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="Masukkan email"
-                required
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-
-            </div>
-
-            {/* PASSWORD */}
-            <div>
-
-              <label className="block text-gray-900 font-semibold mb-2">
-                Password
-              </label>
-
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Masukkan password"
-                required
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-
-            </div>
-
-            {/* KONFIRMASI */}
-            <div>
-
-              <label className="block text-gray-900 font-semibold mb-2">
-                Konfirmasi Password
-              </label>
-
-              <input
-                type="password"
-                value={konfirmasi}
-                onChange={(e) => setKonfirmasi(e.target.value)}
-                placeholder="Ulangi password"
-                required
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-
-            </div>
-
-            {/* BUTTON */}
-            <button
-              type="submit"
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-bold transition"
-            >
-              Daftar
-            </button>
-
-          </form>
-
-          <div className="text-center mt-6">
-
-            <p className="text-gray-700">
-              Sudah punya akun?
-            </p>
-
-            <a
-              href="/login"
-              className="text-blue-600 font-semibold hover:underline"
-            >
-              Login sekarang
-            </a>
-
-          </div>
-
+    <AuthShell judulKiri={["Satu akun.", "Banyak tujuan."]}>
+      <div className="flex flex-col gap-7">
+        <div className="flex flex-col gap-[10px]">
+          <p className="text-[11px] font-semibold leading-normal text-[#087f6d]">AKUN RETTOR</p>
+          <h1 className="text-4xl font-normal leading-[1.2] text-[#172f2c]">Daftar akun</h1>
+          <p className="text-sm leading-normal text-[#687773]">Buat akun Rettor untuk mulai perjalanan pertamamu.</p>
         </div>
 
-      </section>
+        <form onSubmit={handleRegister} className="flex flex-col gap-7">
+          <div className="flex flex-col gap-5">
+            <TextField
+              label="Nama Lengkap"
+              type="text"
+              value={nama}
+              onChange={(e) => setNama(e.target.value)}
+              placeholder="Masukkan nama lengkap"
+              required
+            />
+            <TextField
+              label="Email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Masukkan email"
+              required
+            />
+            <PasswordField
+              label="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Masukkan password"
+              required
+            />
+            <PasswordField
+              label="Konfirmasi Password"
+              value={konfirmasi}
+              onChange={(e) => setKonfirmasi(e.target.value)}
+              placeholder="Ulangi password"
+              required
+            />
+          </div>
+          <button
+            type="submit"
+            className="h-[52px] w-full rounded-lg bg-[#d7eb95] text-sm font-semibold text-[#172f2c] transition hover:bg-[#cfe585]"
+          >
+            Daftar
+          </button>
+        </form>
 
-    </main>
+        <div className="flex flex-col gap-6">
+          <div className="h-px w-full bg-[#dee6df]" />
+          <p className="flex justify-center gap-1.5 text-sm leading-normal">
+            <span className="text-[#687773]">Sudah punya akun?</span>
+            <Link href="/login" className="font-semibold text-[#087f6d]">Login sekarang</Link>
+          </p>
+        </div>
+      </div>
+    </AuthShell>
   );
 }

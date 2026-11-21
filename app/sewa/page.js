@@ -1,8 +1,9 @@
-
 "use client";
 
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import Link from "next/link";
+import { inter, Icon, SiteNav, SiteFooter } from "../components/site";
 
 const DENDA_PER_HARI = 50000;
 const DEPOSIT_TETAP = 200000;
@@ -256,405 +257,317 @@ export default function SewaPage() {
       </main>
     );
   }
+  const tgl = (s) =>
+    s
+      ? new Date(`${s}T00:00:00`).toLocaleDateString("id-ID", {
+          day: "numeric",
+          month: "short",
+          year: "numeric",
+        })
+      : "-";
 
   return (
-    <main style={{
-      minHeight: "100vh",
-      background: "#f5f7fb",
-      fontFamily: "Arial, sans-serif",
-    }}>
+    <div className={`${inter.className} flex min-h-screen flex-col bg-white`}>
+      <SiteNav nama={user.nama} />
 
-      {/* NAVBAR */}
-      <nav style={{
-        background: "white",
-        borderBottom: "1px solid #e5e7eb",
-      }}>
-        <div style={{
-          maxWidth: "1200px",
-          margin: "0 auto",
-          padding: "20px 25px",
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          flexWrap: "wrap",
-          gap: "15px",
-        }}>
-          <a href="/" style={{
-            textDecoration: "none",
-            fontSize: "28px",
-            fontWeight: "900",
-            color: "#2563eb",
-          }}>
-            RETTOR
-          </a>
+      {/* PENGANTAR */}
+      <section className="flex flex-col gap-7 bg-[#f6f3ea] px-6 pb-9 pt-7 lg:px-20">
+        <div className="flex flex-wrap items-center gap-2.5 text-xs text-[#687773]">
+          <Link href="/">Beranda</Link>
+          <Icon name="chevron-right" className="size-[13px]" />
+          <Link href="/motor">Daftar motor</Link>
+          <Icon name="chevron-right" className="size-[13px]" />
+          <span>{motorTerpilih ? motorTerpilih.nama : "Pilih motor"}</span>
+          <Icon name="chevron-right" className="size-[13px]" />
+          <span className="text-[#087f6d]">Sewa motor</span>
+        </div>
 
-          <div style={{
-            display: "flex",
-            gap: "25px",
-            flexWrap: "wrap",
-          }}>
-            {[
-              ["/", "Beranda"],
-              ["/motor", "Motor"],
-              ["/pesanan", "Pesanan Saya"],
-              ["/profil", "Profil"],
-            ].map(([link, label]) => (
-              <a key={link} href={link} style={{
-                textDecoration: "none",
-                color: "#374151",
-                fontWeight: "600",
-              }}>
-                {label}
-              </a>
-            ))}
+        <div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-center">
+          <div className="flex flex-col gap-3">
+            <h1 className="text-4xl font-normal leading-[1.1] tracking-[-1.8px] text-[#172f2c] lg:text-[46px]">Sewa motor</h1>
+            <p className="text-[15px] text-[#687773]">Lengkapi data berikut untuk mengajukan penyewaan.</p>
+          </div>
+
+          <div className="flex items-center gap-[18px]">
+            <div className="flex items-center gap-[9px]">
+              <span className="flex size-7 items-center justify-center rounded-full bg-[#e7f3ec] text-[#087f6d]">
+                <Icon name="check" className="size-[15px]" />
+              </span>
+              <span className="text-[13px] text-[#087f6d]">Pilih motor</span>
+            </div>
+            <Icon name="chevron-right" className="size-[15px] text-[#687773]" />
+            <div className="flex items-center gap-[9px]">
+              <span className="flex size-7 items-center justify-center rounded-full bg-[#087f6d] text-xs font-semibold text-white">2</span>
+              <span className="text-[13px] font-semibold text-[#172f2c]">Data penyewa</span>
+            </div>
+            <Icon name="chevron-right" className="size-[15px] text-[#687773]" />
+            <div className="flex items-center gap-[9px]">
+              <span className="flex size-7 items-center justify-center rounded-full border border-[#dee5df] text-xs text-[#687773]">3</span>
+              <span className="text-[13px] text-[#687773]">Konfirmasi</span>
+            </div>
           </div>
         </div>
-      </nav>
+      </section>
 
-      {/* FORM SEWA */}
-      <section style={{
-        maxWidth: "900px",
-        margin: "0 auto",
-        padding: "50px 25px",
-      }}>
-        <h1 style={{
-          margin: 0,
-          color: "#111827",
-          fontSize: "34px",
-        }}>
-          Sewa Motor
-        </h1>
+      {/* FORMULIR DAN RINGKASAN */}
+      <form onSubmit={handleSubmit} className="flex flex-col items-start gap-8 px-6 pb-16 pt-10 lg:flex-row lg:px-20">
+        {/* KIRI */}
+        <div className="flex w-full min-w-0 flex-1 flex-col gap-6">
+          {/* 01 DATA PENYEWA */}
+          <div className="flex flex-col gap-6 rounded-2xl border border-[#dee5df] p-7">
+            <SectionHead no="01" judul="Kenalan dulu, yuk." petunjuk="Gunakan data yang sesuai dengan identitas penyewa." />
 
-        <p style={{
-          color: "#6b7280",
-          marginTop: "10px",
-        }}>
-          Lengkapi data berikut untuk mengajukan penyewaan.
-        </p>
-
-        <form onSubmit={handleSubmit}>
-          <div style={{
-            marginTop: "30px",
-            background: "white",
-            padding: "30px",
-            borderRadius: "18px",
-            boxShadow: "0 5px 20px rgba(0,0,0,0.06)",
-          }}>
-
-            {/* NAMA */}
-            <label style={labelStyle}>Nama</label>
-            <input
-              type="text"
-              value={nama}
-              onChange={(e) => setNama(e.target.value)}
-              required
-              style={inputStyle}
-            />
-
-            {/* NOMOR TELEPON */}
-            <label style={labelStyle}>Nomor Telepon</label>
-            <input
-              type="tel"
-              name="telepon"
-              value={telepon}
-              onChange={(e) => {
-                const angka = e.target.value
-                  .replace(/\D/g, "")
-                  .slice(0, 13);
-
-                setTelepon(angka);
-              }}
-              placeholder="Contoh: 081234567890"
-              maxLength={13}
-              minLength={10}
-              inputMode="numeric"
-              required
-              style={inputStyle}
-            />
-
-            <p style={{
-              fontSize: "12px",
-              color: "#6b7280",
-              marginTop: "-12px",
-              marginBottom: "22px",
-            }}>
-              Masukkan 10–13 digit nomor HP. Maksimal 13 angka.
-            </p>
-
-            {/* PILIH MOTOR */}
-            <label style={labelStyle}>Pilih Motor</label>
-            <select
-              value={motor}
-              onChange={(e) => setMotor(e.target.value)}
-              required
-              style={inputStyle}
-            >
-              <option value="">-- Pilih Motor --</option>
-              {motorList.map((item) => (
-                <option key={item.id} value={item.id}>
-                  {item.nama} - {formatRupiah(item.harga)}/hari
-                </option>
-              ))}
-            </select>
-
-            {/* TANGGAL */}
-            <div style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-              gap: "20px",
-            }}>
-              <div>
-                <label style={labelStyle}>Tanggal Mulai</label>
+            <div className="flex flex-col gap-5 sm:flex-row">
+              <div className="flex flex-1 flex-col gap-[9px]">
+                <label className={labelCls}>Nama</label>
                 <input
-                  type="date"
-                  value={tanggalMulai}
-                  onChange={(e) => setTanggalMulai(e.target.value)}
+                  type="text"
+                  value={nama}
+                  onChange={(e) => setNama(e.target.value)}
                   required
-                  style={inputStyle}
+                  className={inputCls}
                 />
               </div>
-
-              <div>
-                <label style={labelStyle}>Tanggal Selesai</label>
+              <div className="flex flex-1 flex-col gap-[9px]">
+                <label className={labelCls}>Nomor Telepon</label>
                 <input
-                  type="date"
-                  value={tanggalSelesai}
-                  min={tanggalMulai || undefined}
-                  onChange={(e) => setTanggalSelesai(e.target.value)}
+                  type="tel"
+                  name="telepon"
+                  value={telepon}
+                  onChange={(e) => setTelepon(e.target.value.replace(/\D/g, "").slice(0, 13))}
+                  placeholder="Contoh: 081234567890"
+                  maxLength={13}
+                  minLength={10}
+                  inputMode="numeric"
                   required
-                  style={inputStyle}
-                />
-              </div>
-
-              <div>
-                <label style={labelStyle}>Tanggal Pengembalian</label>
-                <input
-                  type="date"
-                  value={tanggalKembali}
-                  min={tanggalSelesai || tanggalMulai || undefined}
-                  onChange={(e) => setTanggalKembali(e.target.value)}
-                  required
-                  style={inputStyle}
+                  className={inputCls}
                 />
               </div>
             </div>
 
-            {/* RINGKASAN */}
-            {motorTerpilih && (
-              <div style={{
-                marginTop: "30px",
-                padding: "25px",
-                background: "#eff6ff",
-                borderRadius: "12px",
-                color: "#111827",
-              }}>
-                <h2 style={{
-                  marginTop: 0,
-                  marginBottom: "22px",
-                  color: "#111827",
-                  fontSize: "22px",
-                }}>
-                  Ringkasan Sewa
-                </h2>
+            <p className="flex items-center gap-2 text-xs text-[#687773]">
+              <Icon name="message-circle" className="size-4 shrink-0" />
+              Pastikan nomor aktif di WhatsApp untuk konfirmasi pesanan.
+            </p>
+          </div>
 
-                <div style={{
-                  display: "grid",
-                  gap: "12px",
-                }}>
-                  <p style={rowStyle}>
-                    Motor: <strong>{motorTerpilih.nama}</strong>
-                  </p>
+          {/* 02 MOTOR DAN JADWAL */}
+          <div className="flex flex-col gap-6 rounded-2xl border border-[#dee5df] p-7">
+            <SectionHead no="02" judul="Atur rencana perjalananmu." petunjuk="Motor pilihanmu sudah terisi. Cek kembali tanggal sewanya." />
 
-                  <p style={rowStyle}>
-                    Harga per hari: <strong>{formatRupiah(hargaPerHari)}</strong>
-                  </p>
+            <div className="flex flex-col gap-[9px]">
+              <label className={labelCls}>Pilih Motor</label>
+              <div className="relative">
+                <select
+                  value={motor}
+                  onChange={(e) => setMotor(e.target.value)}
+                  required
+                  className={`${inputCls} appearance-none pr-11`}
+                >
+                  <option value="">-- Pilih Motor --</option>
+                  {motorList.map((item) => (
+                    <option key={item.id} value={item.id}>
+                      {item.nama} – {formatRupiah(item.harga)}/hari
+                    </option>
+                  ))}
+                </select>
+                <Icon name="chevron-down" className="pointer-events-none absolute right-[14px] top-1/2 size-[18px] -translate-y-1/2 text-[#687773]" />
+              </div>
+            </div>
 
-                  <p style={rowStyle}>
-                    Jumlah hari: <strong>{jumlahHari} hari</strong>
-                  </p>
+            <div className="grid gap-4 sm:grid-cols-3">
+              <DateField label="Tanggal Mulai" value={tanggalMulai} onChange={(e) => setTanggalMulai(e.target.value)} />
+              <DateField label="Tanggal Selesai" value={tanggalSelesai} min={tanggalMulai || undefined} onChange={(e) => setTanggalSelesai(e.target.value)} />
+              <DateField label="Tanggal Pengembalian" value={tanggalKembali} min={tanggalSelesai || tanggalMulai || undefined} onChange={(e) => setTanggalKembali(e.target.value)} />
+            </div>
+          </div>
 
-                  <p style={rowStyle}>
-                    Diskon: <strong>{persenDiskon}% ({formatRupiah(jumlahDiskon)})</strong>
-                  </p>
+          {/* 03 DISKON DAN PERSETUJUAN */}
+          <div className="flex flex-col gap-[22px] rounded-2xl border border-[#dee5df] p-7">
+            <SectionHead no="03" judul="Jalan dulu, lebih hemat." petunjuk="Makin lama sewa, makin besar diskonnya." />
 
-                  <p style={rowStyle}>
-                    Denda keterlambatan: <strong>{formatRupiah(denda)}</strong>
-                  </p>
+            {persenDiskon > 0 ? (
+              <div className="flex items-center gap-[14px] rounded-lg bg-[#e7f3ec] p-4">
+                <Icon name="ticket-percent" className="size-6 shrink-0 text-[#087f6d]" />
+                <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+                  <p className="text-sm font-semibold text-[#087f6d]">Diskon {persenDiskon}% diterapkan</p>
+                  <p className="text-xs text-[#687773]">Potongan otomatis untuk sewa {jumlahHari} hari.</p>
                 </div>
-
-                <hr style={{
-                  margin: "20px 0",
-                  border: "none",
-                  borderTop: "1px solid #dbe3ef",
-                }} />
-
-                <div style={{ display: "grid", gap: "12px" }}>
-                  <p style={rowStyle}>
-                    Biaya sewa: <strong>{formatRupiah(totalSewa)}</strong>
-                  </p>
-
-                  <p style={rowStyle}>
-                    Deposit (jaminan): <strong>{formatRupiah(DEPOSIT_TETAP)}</strong>
-                  </p>
-
-                  <p style={{
-                    ...rowStyle,
-                    color: "#15803d",
-                  }}>
-                    Deposit dapat dikembalikan setelah pemeriksaan motor oleh admin.
-                  </p>
-                </div>
-
-                <div style={{
-                  marginTop: "20px",
-                  padding: "18px",
-                  background: "white",
-                  borderRadius: "10px",
-                }}>
-                  <p style={{
-                    margin: 0,
-                    color: "#6b7280",
-                    fontSize: "14px",
-                  }}>
-                    TOTAL PEMBAYARAN AWAL
-                  </p>
-
-                  <h2 style={{
-                    color: "#2563eb",
-                    margin: "8px 0 0",
-                    fontSize: "26px",
-                  }}>
-                    {formatRupiah(totalPembayaran)}
-                  </h2>
+                <Icon name="circle-check" className="size-5 shrink-0 text-[#087f6d]" />
+              </div>
+            ) : (
+              <div className="flex items-center gap-[14px] rounded-lg bg-[#f5f7f4] p-4">
+                <Icon name="ticket-percent" className="size-6 shrink-0 text-[#687773]" />
+                <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+                  <p className="text-sm font-semibold text-[#172f2c]">Belum ada diskon</p>
+                  <p className="text-xs text-[#687773]">Sewa 3 hari: 10% · 7 hari: 15% · 14 hari: 20%.</p>
                 </div>
               </div>
             )}
 
-            {/* KETENTUAN JAMINAN */}
-            <div style={{
-              marginTop: "25px",
-              padding: "20px",
-              background: "#fff7ed",
-              border: "1px solid #fed7aa",
-              borderRadius: "10px",
-              color: "#9a3412",
-            }}>
-              <h3 style={{
-                margin: "0 0 12px",
-                fontSize: "18px",
-              }}>
-                Persyaratan Jaminan Penyewaan
-              </h3>
-
-              <ul style={{
-                paddingLeft: "20px",
-                lineHeight: "1.9",
-                marginBottom: 0,
-              }}>
-                <li>
-                  Pelanggan wajib menunjukkan KTP asli kepada admin
-                  saat pengambilan motor.
-                </li>
-                <li>
-                  KTP digunakan untuk verifikasi identitas dan tidak
-                  perlu diunggah ke website.
-                </li>
-                <li>
-                  Deposit sebesar Rp200.000 per pesanan.
-                </li>
-                <li>
-                  Deposit dibayarkan terpisah dari biaya sewa.
-                </li>
-                <li>
-                  Deposit dikembalikan setelah motor diperiksa admin.
-                </li>
-                <li>
-                  Jika terdapat kerusakan, admin akan melakukan
-                  pemeriksaan terlebih dahulu.
-                </li>
-              </ul>
-            </div>
-
-            {/* PERSETUJUAN */}
-            <label style={{
-              display: "flex",
-              alignItems: "flex-start",
-              gap: "10px",
-              marginTop: "22px",
-              color: "#374151",
-              lineHeight: "1.6",
-              cursor: "pointer",
-            }}>
+            <label className="flex cursor-pointer items-start gap-3 text-[13px] leading-[1.6] text-[#687773]">
               <input
                 type="checkbox"
                 checked={setujuJaminan}
                 onChange={(e) => setSetujuJaminan(e.target.checked)}
-                style={{
-                  width: "18px",
-                  height: "18px",
-                  marginTop: "3px",
-                  accentColor: "#2563eb",
-                  flexShrink: 0,
-                }}
+                className="mt-[3px] size-[18px] shrink-0 accent-[#087f6d]"
               />
-
               <span>
-                Saya bersedia menunjukkan KTP asli saat mengambil motor
-                dan menyetujui ketentuan deposit RETTOR sebesar Rp200.000.
+                Saya bersedia menunjukkan KTP asli saat mengambil motor dan menyetujui ketentuan
+                deposit RETTOR sebesar Rp200.000.
               </span>
             </label>
-
-            {/* BUTTON */}
-            <button
-              type="submit"
-              disabled={loading}
-              style={{
-                width: "100%",
-                marginTop: "30px",
-                padding: "15px",
-                border: "none",
-                borderRadius: "9px",
-                background: loading ? "#9ca3af" : "#2563eb",
-                color: "white",
-                fontSize: "17px",
-                fontWeight: "bold",
-                cursor: loading ? "not-allowed" : "pointer",
-              }}
-            >
-              {loading ? "Memproses..." : "Ajukan Penyewaan"}
-            </button>
           </div>
-        </form>
-      </section>
-    </main>
+
+          <div className="h-px w-full bg-[#dee5df]" />
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="flex h-[50px] w-full items-center justify-center gap-2.5 rounded-lg border border-[#087f6d] bg-[#087f6d] text-sm font-semibold text-white transition hover:bg-[#066b5c] disabled:cursor-not-allowed disabled:border-[#9ca3af] disabled:bg-[#9ca3af]"
+          >
+            {loading ? "Memproses..." : "Ajukan Penyewaan"}
+            {!loading && <Icon name="arrow-right" className="size-[18px]" />}
+          </button>
+
+          <p className="text-center text-xs leading-[1.6] text-[#687773]">
+            Tim Rettor akan menghubungimu untuk konfirmasi ketersediaan dan pembayaran.
+          </p>
+        </div>
+
+        {/* KANAN */}
+        <div className="flex w-full flex-col gap-5 lg:w-[440px] lg:shrink-0">
+          <div className="overflow-hidden rounded-2xl border border-[#dee5df]">
+            <div className="flex flex-col gap-4 bg-[#f5f7f4] p-6">
+              <p className="text-[22px] tracking-[-0.6px] text-[#172f2c]">Ringkasan Sewa</p>
+              <div className="flex items-center gap-4">
+                <div className="flex h-[92px] w-[120px] shrink-0 items-center justify-center overflow-hidden rounded-lg bg-white">
+                  {motorTerpilih?.gambar && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={motorTerpilih.gambar} alt={motorTerpilih.nama} className="size-full object-cover" />
+                  )}
+                </div>
+                <div className="flex min-w-0 flex-1 flex-col gap-2">
+                  <p className="text-base font-semibold text-[#172f2c]">
+                    {motorTerpilih ? motorTerpilih.nama : "Belum pilih motor"}
+                  </p>
+                  {motorTerpilih && (
+                    <p className="text-xs text-[#687773]">
+                      {motorTerpilih.jenis} · {motorTerpilih.cc} cc
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-5 p-6">
+              <div className="flex flex-col gap-3.5">
+                <Row label="Mulai sewa" value={tgl(tanggalMulai)} />
+                <Row label="Selesai sewa" value={tgl(tanggalSelesai)} />
+                <Row label="Pengembalian" value={tgl(tanggalKembali)} />
+              </div>
+
+              <div className="h-px w-full bg-[#dee5df]" />
+
+              <div className="flex flex-col gap-4">
+                <Row label="Harga per hari" value={formatRupiah(hargaPerHari)} />
+                <Row label="Jumlah hari" value={`${jumlahHari} hari`} />
+                <Row label="Subtotal sewa" value={formatRupiah(hargaAwal)} />
+                <Row label={`Diskon (${persenDiskon}%)`} value={`− ${formatRupiah(jumlahDiskon)}`} hijau />
+                <Row label="Denda keterlambatan" value={formatRupiah(denda)} />
+              </div>
+
+              <div className="h-px w-full bg-[#dee5df]" />
+
+              <div className="flex items-center justify-between">
+                <p className="text-base font-medium text-[#172f2c]">Total</p>
+                <p className="text-[28px] font-semibold tracking-[-0.8px] text-[#087f6d]">{formatRupiah(totalSewa)}</p>
+              </div>
+
+              <div className="flex flex-col gap-3 rounded-lg bg-[#f6f3ea] p-4">
+                <Row label="Deposit (jaminan)" value={formatRupiah(DEPOSIT_TETAP)} />
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-medium text-[#172f2c]">Total pembayaran awal</p>
+                  <p className="text-lg font-semibold text-[#087f6d]">{formatRupiah(totalPembayaran)}</p>
+                </div>
+                <p className="text-[11px] leading-normal text-[#687773]">
+                  Deposit dapat dikembalikan setelah pemeriksaan motor oleh admin.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-start gap-3 rounded-2xl bg-[#f6f3ea] p-5">
+            <Icon name="shield-check" className="size-[22px] shrink-0 text-[#087f6d]" />
+            <div className="flex min-w-0 flex-1 flex-col gap-2">
+              <p className="text-sm font-semibold text-[#172f2c]">Siapkan KTP &amp; SIM C aktif</p>
+              <p className="text-xs leading-[1.7] text-[#687773]">
+                Tunjukkan identitas asli saat serah terima. Data pribadimu hanya digunakan untuk keperluan sewa.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-3 p-5">
+            <p className="text-base text-[#172f2c]">Butuh teman ngobrol?</p>
+            <p className="text-[13px] leading-[1.6] text-[#687773]">Kami siap bantu rencana perjalananmu.</p>
+            <a
+              href="https://wa.me/6285219579928"
+              target="_blank"
+              rel="noreferrer"
+              className="flex h-[50px] items-center justify-center gap-2.5 rounded-lg border border-[#dee5df] bg-white text-sm font-semibold text-[#172f2c]"
+            >
+              Hubungi Rettor
+              <Icon name="message-circle" className="size-[18px]" />
+            </a>
+          </div>
+        </div>
+      </form>
+
+      <SiteFooter />
+    </div>
   );
 }
 
-const labelStyle = {
-  display: "block",
-  fontWeight: "bold",
-  color: "#111827",
-  marginBottom: "8px",
-};
+const inputCls =
+  "min-h-[50px] w-full rounded-lg border border-[#dee5df] bg-white p-[14px] text-sm text-[#172f2c] placeholder:text-[#687773] focus:border-[#087f6d] focus:outline-none focus:ring-2 focus:ring-[#087f6d]/20";
+const labelCls = "text-[13px] font-semibold text-[#172f2c]";
 
-const inputStyle = {
-  width: "100%",
-  padding: "13px",
-  border: "1px solid #d1d5db",
-  borderRadius: "8px",
-  boxSizing: "border-box",
-  marginBottom: "20px",
-  color: "#111827",
-  background: "white",
-  fontSize: "16px",
-};
+function SectionHead({ no, judul, petunjuk }) {
+  return (
+    <div className="flex w-full items-start gap-[14px]">
+      <div className="flex size-[34px] shrink-0 items-center justify-center rounded-[10px] bg-[#e7f3ec] text-[13px] font-semibold text-[#087f6d]">
+        {no}
+      </div>
+      <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+        <p className="text-xl tracking-[-0.5px] text-[#172f2c]">{judul}</p>
+        <p className="text-[13px] leading-[1.6] text-[#687773]">{petunjuk}</p>
+      </div>
+    </div>
+  );
+}
 
-const rowStyle = {
-  margin: 0,
-  color: "#111827",
-  fontSize: "16px",
-  display: "flex",
-  justifyContent: "space-between",
-  gap: "10px",
-  flexWrap: "wrap",
-};
+function DateField({ label, ...props }) {
+  return (
+    <div className="flex flex-col gap-[9px]">
+      <label className={labelCls}>{label}</label>
+      <div className="relative">
+        <input
+          type="date"
+          required
+          {...props}
+          className={`${inputCls} pr-11 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:inset-0 [&::-webkit-calendar-picker-indicator]:size-full [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-0`}
+        />
+        <Icon name="calendar-days" className="pointer-events-none absolute right-[14px] top-1/2 size-[18px] -translate-y-1/2 text-[#087f6d]" />
+      </div>
+    </div>
+  );
+}
+
+function Row({ label, value, hijau }) {
+  return (
+    <div className={`flex items-center justify-between gap-3 ${hijau ? "text-[#087f6d]" : ""}`}>
+      <p className={`text-[13px] ${hijau ? "" : "text-[#687773]"}`}>{label}</p>
+      <p className={`text-sm font-medium ${hijau ? "" : "text-[#172f2c]"}`}>{value}</p>
+    </div>
+  );
+}

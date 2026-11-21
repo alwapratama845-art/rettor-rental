@@ -1,7 +1,23 @@
-
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
+import { inter, Icon, SiteNav, SiteFooter } from "../components/site";
+
+const KUNING = "bg-[#f6f3ea] text-[#ae781f]";
+
+const STATUS_PESANAN = {
+  disetujui: { label: "Disetujui", cls: "bg-[#e7f3ec] text-[#087f6d]" },
+  ditolak: { label: "Ditolak", cls: "bg-[#ffe9ea] text-[#ff383c]" },
+  menunggu: { label: "Menunggu", cls: KUNING },
+};
+
+const STATUS_DEPOSIT = {
+  menunggu: { label: "Menunggu pembayaran", cls: KUNING },
+  diterima: { label: "Sudah diterima admin", cls: "bg-[#e7f3ec] text-[#087f6d]" },
+  dikembalikan: { label: "Sudah dikembalikan", cls: "bg-[#103f37] text-[#d7eb95]" },
+  dipotong: { label: "Deposit dipotong", cls: "bg-[#ffe9ea] text-[#ff383c]" },
+};
 
 export default function PesananPage() {
   const [user, setUser] = useState(null);
@@ -28,10 +44,7 @@ export default function PesananPage() {
 
   const ambilPesanan = async (userId) => {
     try {
-      const response = await fetch(
-        `/api/pesanan?user_id=${userId}`
-      );
-
+      const response = await fetch(`/api/pesanan?user_id=${userId}`);
       const data = await response.json();
 
       if (data.success) {
@@ -44,13 +57,7 @@ export default function PesananPage() {
     }
   };
 
-  const formatRupiah = (angka) => {
-    return new Intl.NumberFormat("id-ID", {
-      style: "currency",
-      currency: "IDR",
-      minimumFractionDigits: 0,
-    }).format(angka || 0);
-  };
+  const formatRupiah = (angka) => `Rp${Number(angka || 0).toLocaleString("id-ID")}`;
 
   const formatTanggal = (tanggal) => {
     if (!tanggal) return "-";
@@ -63,608 +70,191 @@ export default function PesananPage() {
     });
   };
 
-  const warnaStatus = (status) => {
-    if (status === "disetujui") {
-      return {
-        background: "#dcfce7",
-        color: "#15803d",
-      };
-    }
-
-    if (status === "ditolak") {
-      return {
-        background: "#fee2e2",
-        color: "#dc2626",
-      };
-    }
-
-    return {
-      background: "#fef3c7",
-      color: "#b45309",
-    };
-  };
-
-  const warnaDeposit = (status) => {
-    if (status === "diterima") {
-      return {
-        background: "#dcfce7",
-        color: "#15803d",
-      };
-    }
-
-    if (status === "dikembalikan") {
-      return {
-        background: "#dbeafe",
-        color: "#1d4ed8",
-      };
-    }
-
-    if (status === "dipotong") {
-      return {
-        background: "#fee2e2",
-        color: "#dc2626",
-      };
-    }
-
-    return {
-      background: "#fef3c7",
-      color: "#b45309",
-    };
-  };
-
-  const labelDeposit = (status) => {
-    const labels = {
-      menunggu: "Menunggu Pembayaran",
-      diterima: "Sudah Diterima Admin",
-      dikembalikan: "Sudah Dikembalikan",
-      dipotong: "Deposit Dipotong",
-    };
-
-    return labels[status] || "Menunggu Pembayaran";
-  };
-
   if (loading || !user) {
     return (
-      <main style={{
-        minHeight: "100vh",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        background: "#F0F7FF",
-        fontFamily: "Arial, sans-serif",
-      }}>
-        <h2 style={{ color: "#111827" }}>
-          Memuat pesanan...
-        </h2>
-      </main>
+      <div className={`${inter.className} flex min-h-screen items-center justify-center bg-white`}>
+        <p className="text-sm text-[#687773]">Memuat pesanan...</p>
+      </div>
     );
   }
 
   return (
-    <main style={{
-      minHeight: "100vh",
-      background: "#F0F7FF",
-      fontFamily: "Arial, sans-serif",
-      color: "#111827",
-    }}>
+    <div className={`${inter.className} flex min-h-screen flex-col bg-white`}>
+      <SiteNav nama={user.nama} login aktif="pesanan" />
 
-      {/* NAVBAR */}
-      <nav style={{
-        background: "white",
-        borderBottom: "1px solid #e5e7eb",
-        position: "sticky",
-        top: 0,
-        zIndex: 50,
-      }}>
-        <div style={{
-          maxWidth: "1200px",
-          margin: "0 auto",
-          padding: "18px 25px",
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          gap: "20px",
-          flexWrap: "wrap",
-        }}>
-          <a href="/" style={{
-            textDecoration: "none",
-            fontSize: "28px",
-            fontWeight: "900",
-            color: "#0F4CDB",
-            letterSpacing: "1px",
-          }}>
-            RETTOR
-          </a>
+      <main className="flex-1 leading-[normal]">
+        {/* ================= HERO ================= */}
+        <HeroHalaman baris1="Pesanan" baris2="Saya" />
 
-          <div style={{
-            display: "flex",
-            gap: "25px",
-            alignItems: "center",
-            flexWrap: "wrap",
-            justifyContent: "center",
-          }}>
-            <a href="/" style={navStyle}>Beranda</a>
-            <a href="/motor" style={navStyle}>Motor</a>
-            <a href="/pesanan" style={{
-              ...navStyle,
-              color: "#0F4CDB",
-              fontWeight: "700",
-            }}>
-              Pesanan Saya
-            </a>
-            <a href="/profil" style={navStyle}>Profil</a>
-          </div>
-        </div>
-      </nav>
-
-      {/* HERO */}
-      <section style={{
-        minHeight: "360px",
-        background:
-          "linear-gradient(90deg, rgba(15,76,219,0.96) 0%, rgba(15,76,219,0.82) 38%, rgba(15,76,219,0.45) 70%, rgba(15,76,219,0.20) 100%), url('/rettor-pesanan-bg.png')",
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        backgroundRepeat: "no-repeat",
-        display: "flex",
-        alignItems: "center",
-        padding: "60px 7%",
-        color: "white",
-      }}>
-        <div style={{ maxWidth: "650px" }}>
-          <div style={{
-            display: "inline-block",
-            padding: "8px 16px",
-            borderRadius: "30px",
-            background: "rgba(255,255,255,0.15)",
-            border: "1px solid rgba(255,255,255,0.3)",
-            fontSize: "13px",
-            fontWeight: "700",
-            marginBottom: "18px",
-            letterSpacing: "1px",
-          }}>
-            RETTOR RENTAL MOTOR
-          </div>
-
-          <h1 style={{
-            margin: "0 0 15px",
-            fontSize: "clamp(40px, 6vw, 60px)",
-            lineHeight: "1.05",
-            fontWeight: "900",
-          }}>
-            Pesanan Saya
-          </h1>
-
-          <p style={{
-            margin: 0,
-            fontSize: "18px",
-            lineHeight: "1.7",
-            color: "rgba(255,255,255,0.92)",
-          }}>
-            Halo, {user.nama}. Pantau semua riwayat penyewaan
-            motor kamu di sini.
-          </p>
-        </div>
-      </section>
-
-      {/* CONTENT */}
-      <section style={{
-        maxWidth: "1100px",
-        margin: "0 auto",
-        padding: "55px 25px 80px",
-      }}>
-        <div style={{ marginBottom: "30px" }}>
-          <p style={{
-            margin: "0 0 7px",
-            color: "#0F4CDB",
-            fontWeight: "800",
-            fontSize: "14px",
-            letterSpacing: "1px",
-          }}>
-            RIWAYAT PENYEWAAN
-          </p>
-
-          <h2 style={{
-            margin: 0,
-            fontSize: "32px",
-            fontWeight: "900",
-            color: "#111827",
-          }}>
-            Daftar Pesanan
-          </h2>
-        </div>
-
-        {pesanan.length === 0 ? (
-          <div style={{
-            background: "white",
-            padding: "60px 30px",
-            borderRadius: "22px",
-            textAlign: "center",
-            boxShadow: "0 8px 30px rgba(15,76,219,0.08)",
-            border: "1px solid #E5E7EB",
-          }}>
-            <div style={{
-              width: "80px",
-              height: "80px",
-              margin: "0 auto 20px",
-              borderRadius: "50%",
-              background: "#EAF4FF",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              color: "#0F4CDB",
-              fontSize: "35px",
-              fontWeight: "900",
-            }}>
-              0
+        {/* ================= DAFTAR PESANAN ================= */}
+        <section className="flex flex-col gap-9 px-6 pb-[72px] pt-14 lg:px-20">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+            <div className="flex flex-col gap-3">
+              <p className="text-[11px] font-bold text-[#087f6d]">Lihat daftar riwayat pesanan sewa</p>
+              <h2 className="text-[30px] font-normal leading-[1.18] tracking-[-1.4px] text-[#172f2c] lg:text-[38px]">
+                Daftar Pesanan
+              </h2>
             </div>
 
-            <h2 style={{
-              color: "#111827",
-              margin: "0 0 10px",
-            }}>
-              Belum ada pesanan
-            </h2>
-
-            <p style={{
-              color: "#6B7280",
-              margin: "0 0 20px",
-            }}>
-              Kamu belum melakukan penyewaan motor.
-            </p>
-
-            <a href="/motor" style={{
-              display: "inline-block",
-              background: "#0F4CDB",
-              color: "white",
-              padding: "13px 25px",
-              borderRadius: "10px",
-              textDecoration: "none",
-              fontWeight: "700",
-            }}>
-              Pilih Motor
-            </a>
+            <Link href="/motor" className="flex shrink-0 items-center gap-2 pb-1.5 text-sm text-[#087f6d]">
+              Lihat semua motor
+              <Icon name="arrow-right" className="size-[18px]" />
+            </Link>
           </div>
-        ) : (
-          <div style={{
-            display: "grid",
-            gap: "25px",
-          }}>
-            {pesanan.map((item) => {
-              const deposit = Number(item.jumlah_deposit ?? 200000);
-              const statusDeposit = item.status_deposit || "menunggu";
 
-              return (
-                <div key={item.id} style={{
-                  background: "white",
-                  borderRadius: "20px",
-                  padding: "28px",
-                  boxShadow: "0 8px 30px rgba(15,76,219,0.08)",
-                  border: "1px solid #E5E7EB",
-                }}>
+          {pesanan.length === 0 ? (
+            <div className="flex flex-col items-center justify-center gap-3 bg-[#f6f3ea] px-6 py-16 text-center lg:h-[264px] lg:py-0">
+              <p className="text-[11px] font-bold text-[#087f6d]">Kamu belum menyewa motor</p>
+              <p className="text-[28px] font-normal tracking-[-0.5px] text-[#172f2c] lg:text-[32px]">
+                Belum ada pesanan
+              </p>
+              <Link
+                href="/motor"
+                className="flex h-11 items-center rounded-xl bg-white px-6 text-[13px] font-semibold text-[#172f2c]"
+              >
+                Sewa Motor
+              </Link>
+            </div>
+          ) : (
+            <div className="grid items-start gap-6 lg:grid-cols-2">
+              {pesanan.map((item) => {
+                const deposit = Number(item.jumlah_deposit ?? 200000);
+                const statusDeposit = item.status_deposit || "menunggu";
+                const sp = STATUS_PESANAN[item.status] || { label: item.status || "Menunggu", cls: KUNING };
+                const sd = STATUS_DEPOSIT[statusDeposit] || STATUS_DEPOSIT.menunggu;
 
-                  {/* HEADER PESANAN */}
-                  <div style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    gap: "20px",
-                    marginBottom: "25px",
-                    flexWrap: "wrap",
-                  }}>
-                    <div>
-                      <p style={{
-                        margin: "0 0 5px",
-                        color: "#6B7280",
-                        fontSize: "13px",
-                        fontWeight: "600",
-                      }}>
-                        NOMOR PESANAN
-                      </p>
-
-                      <h2 style={{
-                        margin: 0,
-                        color: "#111827",
-                        fontSize: "25px",
-                        fontWeight: "900",
-                      }}>
-                        {item.motor}
-                      </h2>
-
-                      <p style={{
-                        margin: "7px 0 0",
-                        color: "#6B7280",
-                      }}>
-                        Pesanan #{item.id}
-                      </p>
-                    </div>
-
-                    <span style={{
-                      ...warnaStatus(item.status),
-                      padding: "9px 16px",
-                      borderRadius: "25px",
-                      fontWeight: "700",
-                      fontSize: "13px",
-                      textTransform: "capitalize",
-                    }}>
-                      {item.status}
-                    </span>
-                  </div>
-
-                  {/* DETAIL SEWA */}
-                  <div style={{
-                    display: "grid",
-                    gridTemplateColumns:
-                      "repeat(auto-fit, minmax(200px, 1fr))",
-                    gap: "20px",
-                    background: "#F8FBFF",
-                    padding: "22px",
-                    borderRadius: "15px",
-                  }}>
-                    <Detail label="Tanggal Mulai">
-                      {formatTanggal(item.tanggal_mulai)}
-                    </Detail>
-
-                    <Detail label="Tanggal Selesai">
-                      {formatTanggal(item.tanggal_selesai)}
-                    </Detail>
-
-                    <Detail label="Jumlah Hari">
-                      {item.jumlah_hari} hari
-                    </Detail>
-
-                    <Detail label="Total Biaya Sewa">
-                      <strong style={{
-                        color: "#0F4CDB",
-                        fontSize: "19px",
-                      }}>
-                        {formatRupiah(item.total_harga)}
-                      </strong>
-                    </Detail>
-                  </div>
-
-                  {/* TANGGAL PENGEMBALIAN */}
-                  <div style={{
-                    marginTop: "20px",
-                    paddingBottom: "20px",
-                    borderBottom: "1px solid #E5E7EB",
-                  }}>
-                    <p style={{
-                      margin: "0 0 5px",
-                      color: "#6B7280",
-                      fontSize: "14px",
-                    }}>
-                      Tanggal Pengembalian
-                    </p>
-
-                    <strong style={{ color: "#111827" }}>
-                      {formatTanggal(item.tanggal_kembali)}
-                    </strong>
-                  </div>
-
-                  {/* INFORMASI DEPOSIT */}
-                  <div style={{
-                    marginTop: "22px",
-                    padding: "22px",
-                    background: "#EFF6FF",
-                    border: "1px solid #BFDBFE",
-                    borderRadius: "15px",
-                  }}>
-                    <div style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      gap: "12px",
-                      flexWrap: "wrap",
-                    }}>
-                      <h3 style={{
-                        margin: 0,
-                        color: "#1E40AF",
-                        fontSize: "19px",
-                      }}>
-                        Jaminan Deposit
-                      </h3>
-
-                      <span style={{
-                        ...warnaDeposit(statusDeposit),
-                        padding: "8px 13px",
-                        borderRadius: "20px",
-                        fontSize: "12px",
-                        fontWeight: "700",
-                      }}>
-                        {labelDeposit(statusDeposit)}
+                return (
+                  <article
+                    key={item.id}
+                    className="flex flex-col gap-5 rounded-2xl border border-[#dee5df] bg-white p-6"
+                  >
+                    {/* HEADER */}
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div className="flex flex-col gap-[7px]">
+                        <p className="text-[20px] tracking-[-0.5px] text-[#172f2c]">{item.motor}</p>
+                        <p className="text-xs text-[#687773]">Pesanan #{item.id}</p>
+                      </div>
+                      <span className={`rounded-lg px-2.5 py-1.5 text-xs font-semibold capitalize ${sp.cls}`}>
+                        {sp.label}
                       </span>
                     </div>
 
-                    <h2 style={{
-                      color: "#1D4ED8",
-                      fontSize: "27px",
-                      margin: "15px 0 8px",
-                    }}>
-                      {formatRupiah(deposit)}
-                    </h2>
+                    {/* DETAIL SEWA */}
+                    <div className="grid grid-cols-2 gap-5 rounded-2xl bg-[#f5f7f4] p-5">
+                      <Detail label="Tanggal mulai">{formatTanggal(item.tanggal_mulai)}</Detail>
+                      <Detail label="Tanggal selesai">{formatTanggal(item.tanggal_selesai)}</Detail>
+                      <Detail label="Jumlah hari">{item.jumlah_hari} hari</Detail>
+                      <Detail label="Total biaya sewa">
+                        <span className="text-[#087f6d]">{formatRupiah(item.total_harga)}</span>
+                      </Detail>
+                    </div>
 
-                    <p style={{
-                      color: "#475569",
-                      fontSize: "14px",
-                      lineHeight: "1.7",
-                      margin: 0,
-                    }}>
-                      Deposit merupakan uang jaminan yang terpisah
-                      dari biaya sewa. Deposit akan dikembalikan
-                      setelah motor diperiksa oleh admin sesuai
-                      ketentuan penyewaan.
-                    </p>
+                    <div className="flex items-center justify-between gap-3 text-xs">
+                      <span className="text-[#687773]">Tanggal pengembalian</span>
+                      <span className="font-semibold text-[#172f2c]">{formatTanggal(item.tanggal_kembali)}</span>
+                    </div>
 
-                    {item.catatan_deposit && (
-                      <div style={{
-                        marginTop: "15px",
-                        padding: "12px",
-                        background: "white",
-                        borderRadius: "9px",
-                        color: "#374151",
-                      }}>
-                        <strong>Catatan Admin:</strong>
-                        <p style={{ margin: "5px 0 0" }}>
-                          {item.catatan_deposit}
-                        </p>
+                    <div className="h-px w-full bg-[#dee5df]" />
+
+                    {/* DEPOSIT */}
+                    <div className="flex flex-col gap-3">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <div className="flex items-center gap-2">
+                          <Icon name="shield-check" className="size-[18px] text-[#087f6d]" />
+                          <p className="text-sm font-semibold text-[#172f2c]">Jaminan deposit</p>
+                        </div>
+                        <span className={`rounded-lg px-2.5 py-1.5 text-[11px] font-semibold ${sd.cls}`}>
+                          {sd.label}
+                        </span>
                       </div>
-                    )}
-                  </div>
 
-                  {/* RINGKASAN PEMBAYARAN */}
-                  <div style={{
-                    marginTop: "22px",
-                    padding: "20px",
-                    border: "1px solid #E5E7EB",
-                    borderRadius: "13px",
-                  }}>
-                    <h3 style={{
-                      margin: "0 0 17px",
-                      color: "#111827",
-                    }}>
-                      Ringkasan Pembayaran
-                    </h3>
+                      <p className="text-[22px] font-bold tracking-[-0.7px] text-[#172f2c]">
+                        {formatRupiah(deposit)}
+                      </p>
 
-                    <div style={paymentRow}>
-                      <span>Biaya sewa</span>
-                      <strong>{formatRupiah(item.total_harga)}</strong>
+                      <p className="text-xs leading-[1.65] text-[#687773]">
+                        Deposit adalah uang jaminan yang terpisah dari biaya sewa. Deposit dikembalikan setelah motor
+                        diperiksa admin sesuai ketentuan penyewaan.
+                      </p>
+
+                      {item.catatan_deposit && (
+                        <div className="rounded-lg bg-[#f6f3ea] p-3 text-xs leading-[1.65] text-[#172f2c]">
+                          <span className="font-semibold">Catatan admin: </span>
+                          {item.catatan_deposit}
+                        </div>
+                      )}
                     </div>
 
-                    <div style={paymentRow}>
-                      <span>Deposit jaminan</span>
-                      <strong>{formatRupiah(deposit)}</strong>
+                    {/* RINGKASAN PEMBAYARAN */}
+                    <div className="flex flex-col gap-3 rounded-2xl bg-[#103f37] p-5">
+                      <p className="text-sm font-semibold text-white">Ringkasan pembayaran</p>
+
+                      <div className="flex items-center justify-between gap-3 text-xs text-[#e7f3ec]">
+                        <span>Biaya sewa</span>
+                        <span className="font-semibold text-white">{formatRupiah(item.total_harga)}</span>
+                      </div>
+                      <div className="flex items-center justify-between gap-3 text-xs text-[#e7f3ec]">
+                        <span>Deposit jaminan</span>
+                        <span className="font-semibold text-white">{formatRupiah(deposit)}</span>
+                      </div>
+
+                      <div className="h-px w-full bg-white/15" />
+
+                      <div className="flex items-baseline justify-between gap-3">
+                        <span className="text-xs text-[#e7f3ec]">Total pembayaran awal</span>
+                        <span className="text-[20px] font-bold tracking-[-0.5px] text-[#d7eb95]">
+                          {formatRupiah(Number(item.total_harga || 0) + deposit)}
+                        </span>
+                      </div>
                     </div>
+                  </article>
+                );
+              })}
+            </div>
+          )}
+        </section>
+      </main>
 
-                    <hr style={{
-                      border: "none",
-                      borderTop: "1px solid #E5E7EB",
-                      margin: "15px 0",
-                    }} />
-
-                    <div style={{
-                      ...paymentRow,
-                      color: "#0F4CDB",
-                      fontSize: "17px",
-                    }}>
-                      <strong>Total pembayaran awal</strong>
-                      <strong>
-                        {formatRupiah(Number(item.total_harga || 0) + deposit)}
-                      </strong>
-                    </div>
-                  </div>
-
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </section>
-
-      {/* FOOTER */}
-      <footer style={{
-        background: "#0B1F3A",
-        color: "white",
-        padding: "45px 7% 25px",
-      }}>
-        <div style={{
-          maxWidth: "1100px",
-          margin: "0 auto",
-          display: "grid",
-          gridTemplateColumns:
-            "repeat(auto-fit, minmax(220px, 1fr))",
-          gap: "35px",
-        }}>
-          <div>
-            <h2 style={{
-              margin: "0 0 12px",
-              fontSize: "28px",
-              fontWeight: "900",
-            }}>
-              RETTOR
-            </h2>
-
-            <p style={{
-              margin: 0,
-              color: "#CBD5E1",
-              lineHeight: "1.7",
-            }}>
-              Rental motor terpercaya untuk perjalanan yang
-              lebih mudah, nyaman, dan praktis.
-            </p>
-          </div>
-
-          <div>
-            <h3 style={{ margin: "0 0 15px" }}>Navigasi</h3>
-            <a href="/" style={footerLink}>Beranda</a>
-            <a href="/motor" style={footerLink}>Motor</a>
-            <a href="/pesanan" style={footerLink}>Pesanan Saya</a>
-          </div>
-
-          <div>
-            <h3 style={{ margin: "0 0 15px" }}>Layanan</h3>
-            <p style={footerText}>Rental Motor</p>
-            <p style={footerText}>Pemesanan Online</p>
-            <p style={footerText}>Konfirmasi Admin</p>
-          </div>
-        </div>
-
-        <div style={{
-          maxWidth: "1100px",
-          margin: "35px auto 0",
-          paddingTop: "20px",
-          borderTop: "1px solid rgba(255,255,255,0.15)",
-          textAlign: "center",
-          color: "#94A3B8",
-          fontSize: "14px",
-        }}>
-          © 2026 RETTOR Rental Motor. All rights reserved.
-        </div>
-      </footer>
-    </main>
+      <SiteFooter />
+    </div>
   );
 }
 
 function Detail({ label, children }) {
   return (
-    <div>
-      <p style={{
-        color: "#6B7280",
-        margin: "0 0 6px",
-        fontSize: "14px",
-      }}>
-        {label}
-      </p>
-      <strong style={{ color: "#111827" }}>
-        {children}
-      </strong>
+    <div className="flex flex-col gap-[5px]">
+      <p className="text-[11px] text-[#687773]">{label}</p>
+      <p className="text-sm font-semibold text-[#172f2c]">{children}</p>
     </div>
   );
 }
 
-const navStyle = {
-  textDecoration: "none",
-  color: "#374151",
-  fontWeight: "600",
-};
+// Hero krem: judul di kiri, foto di kanan (sama seperti Beranda).
+function HeroHalaman({ baris1, baris2 }) {
+  return (
+    <section className="flex flex-col bg-[#f6f3ea] px-6 pb-8 lg:h-[330px] lg:flex-row lg:px-20 lg:pb-0">
+      <div className="flex flex-col items-start gap-6 pb-8 pt-[52px] lg:w-[308px] lg:shrink-0 lg:pb-0">
+        <div className="flex items-center gap-2">
+          <span className="size-[7px] rounded-full bg-[#087f6d]" />
+          <p className="text-xs font-bold tracking-[1.5px] text-[#087f6d]">DKI Jakarta</p>
+        </div>
 
-const paymentRow = {
-  display: "flex",
-  justifyContent: "space-between",
-  alignItems: "center",
-  gap: "12px",
-  marginBottom: "12px",
-  color: "#374151",
-  flexWrap: "wrap",
-};
+        <h1 className="text-[44px] font-normal leading-[1.07] tracking-[-2px] text-[#172f2c] lg:text-[62px] lg:tracking-[-3px]">
+          {baris1}
+          <br />
+          {baris2}
+        </h1>
+      </div>
 
-const footerLink = {
-  display: "block",
-  color: "#CBD5E1",
-  textDecoration: "none",
-  marginBottom: "10px",
-};
+      <div className="relative min-h-[240px] flex-1 overflow-hidden">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/login-hero.png" alt="" className="pointer-events-none absolute inset-0 size-full object-cover" />
 
-const footerText = {
-  margin: "0 0 10px",
-  color: "#CBD5E1",
-};
+        <div className="absolute left-8 top-8 flex items-center gap-2 rounded-full bg-white px-[14px] py-[10px]">
+          <Icon name="map-pin" className="size-4 text-[#087f6d]" />
+          <p className="whitespace-nowrap text-xs font-semibold text-[#172f2c]">DKI Jakarta</p>
+        </div>
+      </div>
+    </section>
+  );
+}
